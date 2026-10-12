@@ -1,30 +1,44 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { ask, upload } from './api'
 import { useAuth } from './auth'
-import { newChatId, removeChat, saveChat, subscribeChats, type Chat, type StoredMsg } from './history'
+import { getChat, newChatId, removeChat, saveChat, subscribeChats, type Chat, type StoredMsg } from './history'
 
 const Answer = lazy(() => import('./Answer'))
 
-const SNAPSHOT = 'pagehound-session'
+const CHAT_KEY = 'pagehound-chat:'
+const MAX_LOCAL_CHATS = 20
 
-type Snapshot = { uid: string | null; chatId: string | null; chatLabel: string; msgs: StoredMsg[]; docIds: string[]; attached: { name: string; id?: string; info?: string } | null }
+type Local = { uid: string | null; chatLabel: string; msgs: StoredMsg[]; docIds: string[]; attached: { name: string; id?: string; info?: string } | null; updatedAt: number }
 
-function readSnapshot(): Snapshot | null {
+function readLocal(id: string): Local | null {
   try {
-    const raw = localStorage.getItem(SNAPSHOT)
-    return raw ? (JSON.parse(raw) as Snapshot) : null
+    const raw = localStorage.getItem(CHAT_KEY + id)
+    return raw ? (JSON.parse(raw) as Local) : null
   } catch {
     return null
   }
 }
 
-function writeSnapshot(snapshot: Snapshot | null) {
+function writeLocal(id: string, value: Local) {
   try {
-    if (snapshot) localStorage.setItem(SNAPSHOT, JSON.stringify(snapshot))
-    else localStorage.removeItem(SNAPSHOT)
+    localStorage.setItem(CHAT_KEY + id, JSON.stringify(value))
+    const keys = Object.keys(localStorage).filter((key) => key.startsWith(CHAT_KEY))
+    if (keys.length > MAX_LOCAL_CHATS) {
+      const dated = keys.map((key) => [key, (JSON.parse(localStorage.getItem(key) ?? '{}') as Local).updatedAt ?? 0] as const)
+      dated.sort((x, y) => x[1] - y[1]).slice(0, keys.length - MAX_LOCAL_CHATS).forEach(([key]) => localStorage.removeItem(key))
+    }
   } catch {
     return
   }
+}
+
+const chatIdFromPath = () => /^\/c\/([\w-]+)\/?$/.exec(window.location.pathname)?.[1] ?? null
+const newLocalId = () => (crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '').slice(0, 20) : Math.random().toString(36).slice(2, 12) + Date.now().toString(36))
+
+function go(path: string, replace = false) {
+  if (window.location.pathname === path) return
+  if (replace) window.history.replaceState({}, '', path)
+  else window.history.pushState({}, '', path)
 }
 
 type Msg = StoredMsg
@@ -138,6 +152,8 @@ export default function App({ onContribute }: { onContribute: () => void }) {
   const chatDocs = useRef<string[]>([])
   const chatId = useRef<string | null>(null)
   const [hydrated, setHydrated] = useState(false)
+  const guestChat = useRef(false)
+  const lastUid = useRef<string | null>(null)
 
   const ready = !!attached?.id && !attached.loading
   const hasChat = msgs.length > 0
@@ -148,33 +164,74 @@ export default function App({ onContribute }: { onContribute: () => void }) {
     setActiveId(id)
   }
 
+  async function loadFromUrl() {
+    const id = chatIdFromPath()
+    if (!id) {
+      if (chatId.current) resetChat(false)
+      return
+    }
+    if (id === chatId.current) return
+    const local = readLocal(id)
+    if (local && local.uid === (user?.uid ?? null)) {
+      session.current++
+      chatDocs.current = local.docIds
+      guestChat.current = local.uid === null
+      selectChat(id)
+      setChatLabel(local.chatLabel)
+      setMsgs(local.msgs)
+      setAttached(local.attached ? { ...local.attached, loading: false, sent: true } : null)
+      setError('')
+      return
+    }
+    if (user) {
+      try {
+        const remote = await getChat(user.uid, id)
+        if (remote) {
+          guestChat.current = false
+          openChat(remote, false)
+          return
+        }
+      } catch (e) {
+        console.warn('Could not load this chat', e)
+      }
+    }
+    resetChat(false)
+    go('/', true)
+  }
+
   useEffect(() => {
     if (!authReady || hydrated) return
-    const saved = readSnapshot()
-    if (saved && saved.uid === (user?.uid ?? null) && saved.msgs.length > 0) {
-      chatDocs.current = saved.docIds
-      selectChat(saved.chatId)
-      setChatLabel(saved.chatLabel)
-      setMsgs(saved.msgs)
-      setAttached(saved.attached ? { ...saved.attached, loading: false, sent: true } : null)
-    }
-    setHydrated(true)
+    void loadFromUrl().finally(() => setHydrated(true))
   }, [authReady])
 
   useEffect(() => {
     if (!hydrated) return
-    if (msgs.length === 0 || attached?.loading) {
-      if (msgs.length === 0 && !attached) writeSnapshot(null)
-      return
+    const onPop = () => void loadFromUrl()
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [hydrated, user?.uid])
+
+  useEffect(() => {
+    if (!hydrated) return
+    const previous = lastUid.current
+    lastUid.current = user?.uid ?? null
+    if (previous && previous !== (user?.uid ?? null)) resetChat()
+    if (!previous && user && guestChat.current && msgs.length > 0) {
+      guestChat.current = false
+      void persist(msgs, attached)
     }
+  }, [hydrated, user?.uid])
+
+  useEffect(() => {
+    if (!hydrated || !chatId.current || msgs.length === 0 || attached?.loading) return
     const ids = [...new Set([...chatDocs.current, ...(attached?.id ? [attached.id] : [])])]
-    writeSnapshot({
+    writeLocal(chatId.current, {
       uid: user?.uid ?? null,
-      chatId: chatId.current,
       chatLabel,
       msgs,
       docIds: ids,
       attached: attached ? { name: attached.name, id: attached.id, info: attached.info } : null,
+      updatedAt: Date.now(),
     })
   }, [hydrated, msgs, chatLabel, attached, activeId, user?.uid])
 
@@ -220,10 +277,6 @@ export default function App({ onContribute }: { onContribute: () => void }) {
       return
     }
     return subscribeChats(user.uid, setChats)
-  }, [user?.uid])
-
-  useEffect(() => {
-    if (user && msgs.length > 0 && !chatId.current) void persist(msgs, attached)
   }, [user?.uid])
 
   useEffect(() => {
@@ -301,6 +354,12 @@ export default function App({ onContribute }: { onContribute: () => void }) {
     const history = msgs.slice(-6).map((m) => ({ role: m.role, text: m.text.slice(0, 1500) }))
     const file = attached.sent ? undefined : attached.name
     if (!chatLabel) setChatLabel(attached.name)
+    if (!chatId.current) {
+      const id = user ? newChatId(user.uid) : newLocalId()
+      guestChat.current = !user
+      selectChat(id)
+      go(`/c/${id}`)
+    }
     const base: Msg[] = [...msgs, { role: 'user', text: question, ...(file ? { file } : {}) }]
     setText('')
     setError('')
@@ -318,12 +377,15 @@ export default function App({ onContribute }: { onContribute: () => void }) {
     } catch (e) {
       if (mine !== session.current) return
       setError(messageOf(e))
+      setMsgs(msgs)
+      setText(question)
+      if (file) setAttached((current) => (current ? { ...current, sent: false } : current))
     } finally {
       if (mine === session.current) setThinking(false)
     }
   }
 
-  function resetChat() {
+  function resetChat(push = true) {
     session.current++
     chatDocs.current = []
     selectChat(null)
@@ -333,6 +395,7 @@ export default function App({ onContribute }: { onContribute: () => void }) {
     setText('')
     setError('')
     setThinking(false)
+    if (push) go('/')
   }
 
   function newChat() {
@@ -340,9 +403,10 @@ export default function App({ onContribute }: { onContribute: () => void }) {
     setPanel(false)
   }
 
-  function openChat(chat: Chat) {
+  function openChat(chat: Chat, push = true) {
     session.current++
-    chatDocs.current = chat.docId ? [chat.docId] : []
+    const local = readLocal(chat.id)
+    chatDocs.current = local && local.uid === (user?.uid ?? null) ? local.docIds : chat.docId ? [chat.docId] : []
     selectChat(chat.id)
     setChatLabel(chat.files[0] ?? chat.fileName)
     setMsgs(chat.messages)
@@ -351,6 +415,7 @@ export default function App({ onContribute }: { onContribute: () => void }) {
     setError('')
     setThinking(false)
     setPanel(false)
+    if (push) go(`/c/${chat.id}`)
   }
 
   async function deleteChat(chat: Chat) {

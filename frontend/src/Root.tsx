@@ -4,6 +4,7 @@ const Contribute = lazy(() => import('./Contribute'))
 
 export default function Root() {
   const [path, setPath] = useState(window.location.pathname)
+  const [back, setBack] = useState('/')
 
   useEffect(() => {
     const onPop = () => setPath(window.location.pathname)
@@ -22,11 +23,11 @@ export default function Root() {
   return (
     <>
       <div hidden={onContribute}>
-        <App onContribute={() => go('/contribute')} />
+        <App onContribute={() => { setBack(window.location.pathname); go('/contribute') }} />
       </div>
       {onContribute && (
         <Suspense fallback={null}>
-          <Contribute onBack={() => go('/')} />
+          <Contribute onBack={() => go(back === '/contribute' ? '/' : back)} />
         </Suspense>
       )}
     </>

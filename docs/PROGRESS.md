@@ -12,6 +12,9 @@
 - Frontend: dark glass UI, aurora background, animated logo intro, greeting by time of day, loading file chip, history panel, new chat, Contribute page with UPI QR, mobile layout, PT Serif typography, math and table rendering.
 - Tests: backend 66 passing.
 
+- Per-chat URLs so refresh, new tabs and back/forward behave like other chat apps; guest chats move into the account on sign-in.
+- Retry on busy Gemini models; a failed question is put back in the input box.
+
 ## Next
 
 1. Confirm sign-in and uploads on the live site.

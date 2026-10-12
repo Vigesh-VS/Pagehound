@@ -14,7 +14,7 @@
 
 1. **Upload** (`POST /upload`): identify the user (member by token, guest by IP), apply tier limits, extract text per page, slide or row group, chunk (900 characters, 150 overlap), embed all chunks locally, store in memory with a 2-hour life.
 2. **Ask** (`POST /ask`): take one or more `doc_ids`. If the question names a file or a file type, narrow to those files. Embed the question, score chunks by cosine similarity, and pick the top chunks (8, or 16 spread across the document for broad questions like summaries). With several files, the budget is split across them and excerpts are labelled with the file name.
-3. **Answer**: send excerpts and recent history to Gemini. If a model is busy or rate limited, try the next model in `GEMINI_MODELS`. Failures are refunded from the user's quota.
+3. **Answer**: send excerpts and recent history to Gemini. A busy model is retried twice, then the next model in `GEMINI_MODELS` is tried. Failures are refunded from the user's quota.
 
 ## Extraction
 
@@ -29,6 +29,7 @@ A daily budget is split into an 80% shared pool and a 20% reserve. Each active u
 
 ## Frontend notes
 
+- Every chat has its own address (`/c/<id>`), like other chat apps. Refreshing a tab keeps that tab's chat, a new tab starts on the home screen, and back/forward move between chats. Each chat is also cached in the browser under its own key (guest chats included); signed-in chats are saved in Firestore, and a guest chat is moved into the account on sign-in.
 - The app stays mounted while `/contribute` is shown, so an open chat is not lost.
 - Stale-response guards (`session`, `uploadSeq`) stop slow uploads or answers from landing in a different chat.
 - Answers are rendered with react-markdown, remark-gfm, remark-math and rehype-katex, loaded lazily to keep the first load small.

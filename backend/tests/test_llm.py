@@ -16,6 +16,8 @@ class FakeModels:
     def generate_content(self, model, contents, config):
         self.calls.append(model)
         result = self.behaviors[model]
+        if isinstance(result, list):
+            result = result.pop(0)
         if isinstance(result, Exception):
             raise result
         return FakeResponse(result)
@@ -55,8 +57,22 @@ def test_all_rate_limited_reports_rate_limit(monkeypatch):
     assert info.value.rate_limited is True
 
 
-def test_other_errors_fall_back_to_next_model(monkeypatch):
+def test_busy_model_is_retried_before_falling_back(monkeypatch):
+    monkeypatch.setattr(llm.time, "sleep", lambda s: None)
     client = setup(monkeypatch, ["a", "b"], {"a": Exception("503 UNAVAILABLE"), "b": "from b"})
+    assert llm.answer("q", SOURCES, []) == "from b"
+    assert client.models.calls == ["a", "a", "a", "b"]
+
+
+def test_a_brief_overload_recovers_on_the_same_model(monkeypatch):
+    monkeypatch.setattr(llm.time, "sleep", lambda s: None)
+    client = setup(monkeypatch, ["a", "b"], {"a": [Exception("503 UNAVAILABLE"), "from a"], "b": "from b"})
+    assert llm.answer("q", SOURCES, []) == "from a"
+    assert client.models.calls == ["a", "a"]
+
+
+def test_other_errors_fall_back_without_retrying(monkeypatch):
+    client = setup(monkeypatch, ["a", "b"], {"a": Exception("400 INVALID_ARGUMENT"), "b": "from b"})
     assert llm.answer("q", SOURCES, []) == "from b"
     assert client.models.calls == ["a", "b"]
 

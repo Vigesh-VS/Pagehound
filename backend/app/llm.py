@@ -1,4 +1,5 @@
 import logging
+import time
 
 from google import genai
 from google.genai import types
@@ -76,16 +77,27 @@ def answer(question, sources, history):
     prompt = build_prompt(question, sources, history)
     rate_limited = False
     last_error = None
+    busy_seen = False
 
     for model in config.GEMINI_MODELS:
-        try:
-            response = _generate(model, prompt)
-        except Exception as exc:
-            text = str(exc)
-            log.error("Gemini request failed on %s: %s", model, text[:500])
-            if "429" in text or "RESOURCE_EXHAUSTED" in text:
-                rate_limited = True
-            last_error = exc
+        response = None
+        for attempt in range(3):
+            try:
+                response = _generate(model, prompt)
+                break
+            except Exception as exc:
+                text = str(exc)
+                log.error("Gemini request failed on %s: %s", model, text[:500])
+                last_error = exc
+                if "429" in text or "RESOURCE_EXHAUSTED" in text:
+                    rate_limited = True
+                    break
+                busy = "503" in text or "UNAVAILABLE" in text or "overloaded" in text or "high demand" in text
+                busy_seen = busy_seen or busy
+                if not busy or attempt == 2:
+                    break
+                time.sleep(1.5 * (attempt + 1))
+        if response is None:
             continue
         reply = (response.text or "").strip()
         if reply:
@@ -93,6 +105,8 @@ def answer(question, sources, history):
 
     if rate_limited:
         raise LLMError("Google's free AI quota is exhausted right now.", rate_limited=True)
+    if busy_seen:
+        raise LLMError("Google's AI is busy right now. Please send your question again in a moment.") from last_error
     if last_error is not None:
         raise LLMError("The AI model request failed.") from last_error
     raise LLMError("No configured model could answer. Check GEMINI_MODELS in your .env file.")
