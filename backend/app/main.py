@@ -52,7 +52,7 @@ class AskBody(BaseModel):
 
 @app.get("/health")
 def health():
-    return {"ok": True, "model": config.GEMINI_MODEL, "embedding_model": config.EMBED_MODEL}
+    return {"ok": True, "model": config.GEMINI_MODEL, "embedding_model": config.GEMINI_EMBED_MODEL if config.EMBED_BACKEND == "gemini" else config.EMBED_MODEL}
 
 
 @app.get("/quota")
