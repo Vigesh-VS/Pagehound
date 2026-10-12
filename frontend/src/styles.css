@@ -29,12 +29,12 @@ a { color: inherit; }
 
 .app { position: relative; z-index: 1; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
 
-.bar { position: sticky; top: 0; z-index: 10; height: 56px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; background: rgba(10, 10, 10, 0.8); border-bottom: 1px solid var(--line); }
+.bar { position: sticky; top: 0; z-index: 35; height: 56px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; background: var(--bg); border-bottom: 1px solid var(--line); }
 .bar-left, .bar-right { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
 .bar-right { justify-content: flex-end; }
 .filename { max-width: 28vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 14px; }
 
-.brand { position: fixed; z-index: 30; left: 50%; top: 28px; margin: 0; transform: translate(-50%, -50%); font-size: 20px; font-weight: 800; letter-spacing: 0.14em; white-space: nowrap; transition: top 0.9s cubic-bezier(0.7, 0, 0.2, 1), font-size 0.9s cubic-bezier(0.7, 0, 0.2, 1); pointer-events: none; }
+.brand { position: fixed; z-index: 36; left: 50%; top: 28px; margin: 0; transform: translate(-50%, -50%); font-size: 20px; font-weight: 800; letter-spacing: 0.14em; white-space: nowrap; transition: top 0.9s cubic-bezier(0.7, 0, 0.2, 1), font-size 0.9s cubic-bezier(0.7, 0, 0.2, 1); pointer-events: none; }
 .intro .brand { top: 50%; font-size: clamp(26px, 5.5vw, 64px); }
 
 .solid { background: var(--accent); color: var(--accent-ink); border: 1px solid var(--accent); border-radius: var(--radius); padding: 8px 16px; }
@@ -51,7 +51,7 @@ a { color: inherit; }
 .turn { display: flex; flex-direction: column; gap: 6px; max-width: 80%; }
 .turn.user { align-self: flex-end; align-items: flex-end; }
 .turn.assistant { align-self: stretch; max-width: 100%; }
-.msg { padding: 11px 16px; border-radius: 14px; font-size: 15px; font-weight: 400; }
+.msg { padding: 11px 16px; border-radius: 14px; font-size: 14px; font-weight: 400; }
 .msg p { margin: 0; }
 .msg.user p { white-space: pre-wrap; }
 .md > :last-child { margin-bottom: 0; }
@@ -109,10 +109,10 @@ a { color: inherit; }
   .brand, .bar, .main, .foot, .panel { transition: none; }
 }
 
-.composer { position: sticky; bottom: 0; margin-top: auto; padding: 14px 0 20px; background: linear-gradient(to top, rgba(10, 10, 10, 0.7) 60%, transparent); }
+.composer { position: sticky; bottom: 0; margin-top: auto; padding: 14px 0 20px; background: var(--bg); }
 .box { background: var(--glass); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 18px; padding: 10px 12px 8px; display: flex; flex-direction: column; gap: 8px; }
 .box:focus-within { border-color: var(--ink); }
-.box textarea { font-size: 18px; width: 100%; border: 0; background: transparent; resize: none; outline: none; font: inherit; line-height: 1.5; max-height: 160px; padding: 4px 2px; }
+.box textarea { font-size: 14px; width: 100%; border: 0; background: transparent; resize: none; outline: none; font: inherit; line-height: 1.5; max-height: 160px; padding: 4px 2px; }
 .row { display: flex; align-items: center; justify-content: space-between; }
 .send { width: 34px; height: 34px; border-radius: 50%; border: 0; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; }
 .chip { align-self: flex-start; display: flex; align-items: center; gap: 10px; max-width: 100%; border: 1px solid var(--line); border-radius: 12px; padding: 6px 10px 6px 6px; }
@@ -198,11 +198,11 @@ a { color: inherit; }
   .main { padding: 16px 12px 0; }
   .turn { max-width: 90%; }
   .turn.assistant { max-width: 100%; }
-  .msg { font-size: 15px; padding: 10px 13px; }
+  .msg { font-size: 14px; padding: 10px 13px; }
   .msg.assistant { border: 0; background: none; box-shadow: none; padding: 2px 0; border-radius: 0; }
   .main { padding: 14px 10px 0; }
   .katex-display { padding: 10px 12px; }
-  .box textarea { font-size: 17px; }
+  .box textarea { font-size: 14px; }
   .hello { --g: clamp(22px, 7vw, 30px); gap: 10px; }
   .modal { padding: 22px; }
   .scrim.center { padding: 14px; }
