@@ -2,6 +2,7 @@
 
 ## Done
 
+- Pushed to GitHub, backend deployed on Render (Docker), frontend deployed on Vercel.
 - Backend: upload and ask API, OCR fallback, multi-format extraction, local embeddings, retrieval with broad-question sampling.
 - Quota manager with shared pool, reserve, per-minute limits and refunds.
 - Model fallback across several Gemini models, with the real error logged.
@@ -13,10 +14,8 @@
 
 ## Next
 
-1. Push to GitHub.
-2. Deploy backend (free host with Tesseract) and frontend (Vercel).
-3. Set `ALLOWED_ORIGINS` and `FIREBASE_PROJECT_ID` on the host and add the live domain to Firebase authorized domains.
-4. Add live and GitHub links to the resume.
+1. Confirm sign-in and uploads on the live site.
+2. Add live and GitHub links to the resume.
 
 ## Later ideas
 

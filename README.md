@@ -1,30 +1,124 @@
-# Pagehound
+<p align="center">
+  <img src="docs/images/logo.png" alt="Pagehound logo" width="96" />
+</p>
 
-Upload a document and ask questions about it. Pagehound reads PDFs (including scanned pages through OCR), images, spreadsheets, Word files, slides and text, finds the relevant parts with local embeddings, and answers with Google Gemini.
+<h1 align="center">Pagehound</h1>
 
-**Live app:** _add link after deployment_
+<p align="center">
+  Upload a document, ask questions, get answers. A retrieval-augmented chatbot for PDFs, scans, spreadsheets, Word files and slides.
+</p>
+
+<p align="center">
+  <a href="https://pagehound.vercel.app"><b>Live demo</b></a> ·
+  <a href="docs/ARCHITECTURE.md">Architecture</a> ·
+  <a href="docs/PROGRESS.md">Progress log</a>
+</p>
+
+<p align="center">
+  <img alt="Python" src="https://img.shields.io/badge/Python-FastAPI-009688?logo=fastapi&logoColor=white" />
+  <img alt="React" src="https://img.shields.io/badge/React-TypeScript-3178C6?logo=react&logoColor=white" />
+  <img alt="Gemini" src="https://img.shields.io/badge/Google-Gemini-4285F4?logo=google&logoColor=white" />
+  <img alt="Firebase" src="https://img.shields.io/badge/Firebase-Auth%20%2B%20Firestore-FFCA28?logo=firebase&logoColor=black" />
+  <img alt="License" src="https://img.shields.io/badge/License-MIT-green" />
+</p>
+
+> The backend runs on a free server that sleeps when idle, so the first request after a quiet period can take about a minute.
+
+## Screenshots
+
+<p align="center">
+  <img src="docs/images/home.png" alt="Home screen" width="48%" />
+  <img src="docs/images/chat.png" alt="Chat with an answer" width="48%" />
+</p>
+<p align="center">
+  <img src="docs/images/signin.png" alt="Sign-in dialog" width="48%" />
+  <img src="docs/images/mobile.png" alt="Mobile layout" width="22%" />
+</p>
+
+_The chat screenshot uses a sample answer to show the layout._
 
 ## Features
 
-- Reads PDF, PNG/JPG/WEBP/BMP/TIFF (OCR), CSV/TSV/XLSX, DOCX, PPTX, TXT and MD.
-- Scanned PDF pages are detected automatically and read with Tesseract OCR.
-- Retrieval-augmented answers: documents are chunked, embedded locally with `BAAI/bge-small-en-v1.5`, and the best chunks are sent to Gemini.
-- Several files in one chat. Questions search all files in the chat, or only the file or file type you mention.
-- Math in answers is rendered with KaTeX; tables render as tables.
-- Google sign-in with Firebase. Signed-in users keep chat history (Firestore, owner-only rules) and get larger limits.
-- Guests can upload PDFs up to 10 MB and 25 pages. Signed-in users can upload all file types with higher limits.
-- Free-tier quota manager that shares a daily Gemini budget fairly between active users.
-- Dark, glass-style interface with an animated intro, responsive down to phone width.
+- **Many file types:** PDF, PNG/JPG/WEBP/BMP/TIFF (OCR), CSV/TSV/XLSX, DOCX, PPTX, TXT, MD.
+- **Scanned pages:** pages with no text layer are detected and read with Tesseract OCR.
+- **Retrieval-augmented answers:** files are split into chunks, embedded, and only the most relevant chunks are sent to Gemini.
+- **Multi-file chats:** questions search every file in the chat, or only the file or file type you mention ("in the pdf", "in the csv").
+- **Math and tables:** equations render with KaTeX and tables render as tables.
+- **Google sign-in:** chat history is saved per user in Firestore with owner-only security rules.
+- **Fair free-tier sharing:** a quota manager divides a daily Gemini budget between active users.
+- **Responsive dark UI:** animated intro, aurora background, works from phone to desktop.
 
 ## How it works
 
-```
-Browser (React + Vite)  --upload/ask-->  FastAPI backend  --prompt-->  Gemini
-        |                                   |
-   Firebase Auth / Firestore          extract -> chunk -> embed -> retrieve
+```mermaid
+flowchart LR
+    U([User]) --> FE[React app on Vercel]
+    FE -- Google sign-in --> AUTH[(Firebase Auth)]
+    FE -- chat history --> FS[(Firestore)]
+    FE -- upload / ask + ID token --> BE[FastAPI on Render]
+    BE -- verify token --> AUTH
+    BE -- embeddings --> EMB[Gemini embeddings]
+    BE -- answers --> LLM[Gemini models]
 ```
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for details and [docs/PROGRESS.md](docs/PROGRESS.md) for the build log.
+### Upload pipeline
+
+```mermaid
+flowchart TD
+    A[File uploaded] --> B{Signed in?}
+    B -- No --> C[Guest limits: PDF only, 10 MB, 25 pages]
+    B -- Yes --> D[Member limits: all types, larger files]
+    C --> E{File type}
+    D --> E
+    E -- PDF --> F[Read text layer]
+    F --> G{Page under 50 characters?}
+    G -- Yes --> H[OCR with Tesseract]
+    G -- No --> I[Keep text]
+    E -- Image --> H
+    E -- CSV / XLSX --> J[Summary statistics plus row groups]
+    E -- DOCX / PPTX / TXT --> K[Text parts, slides and notes]
+    H --> L[Split into chunks of 900 characters]
+    I --> L
+    J --> L
+    K --> L
+    L --> M[Embed chunks]
+    M --> N[(In-memory store, 2 hour life)]
+```
+
+### Asking a question
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant App as React app
+    participant API as FastAPI
+    participant Store as Document store
+    participant G as Gemini
+
+    User->>App: Type a question
+    App->>API: POST /ask (doc_ids, question, history)
+    API->>API: Check token and daily quota
+    API->>Store: Load the files in this chat
+    API->>API: Narrow to the file or type named in the question
+    API->>G: Embed the question
+    API->>API: Rank chunks by cosine similarity
+    API->>G: Question + best excerpts + recent history
+    G-->>API: Answer (falls back to the next model if busy)
+    API-->>App: Answer
+    App-->>User: Rendered answer with math and tables
+```
+
+### Quota sharing
+
+```mermaid
+flowchart LR
+    B[Daily Gemini budget] --> P[80% shared pool]
+    B --> R[20% reserve]
+    P --> S[Each active user gets pool / active users]
+    R --> L[Latecomers when the pool is spent]
+    S --> M[Per-minute limits per user and globally]
+    L --> M
+```
 
 ## Run locally
 
@@ -39,7 +133,7 @@ copy .env.example .env
 uvicorn app.main:app --reload --port 8000
 ```
 
-Fill `GEMINI_API_KEY` (free key from Google AI Studio) and `FIREBASE_PROJECT_ID` in `backend/.env`. Install Tesseract if you want OCR.
+Set `GEMINI_API_KEY` (a free key from Google AI Studio) and `FIREBASE_PROJECT_ID` in `backend/.env`. Install [Tesseract](https://github.com/tesseract-ocr/tesseract) for OCR.
 
 Frontend:
 
@@ -50,9 +144,26 @@ copy .env.example .env
 npm run dev
 ```
 
-Fill the `VITE_FIREBASE_*` values from your Firebase web app. Add the frontend address to `ALLOWED_ORIGINS` in the backend `.env`.
+Fill the `VITE_FIREBASE_*` values from your Firebase web app, and add the frontend address to `ALLOWED_ORIGINS` in the backend `.env`. Firestore rules are in [`firestore.rules`](firestore.rules).
 
-Firestore rules are in `firestore.rules`.
+## Configuration
+
+| Variable | Where | Purpose |
+|---|---|---|
+| `GEMINI_API_KEY` | backend | Gemini access |
+| `GEMINI_MODELS` | backend | Models to try, in order |
+| `EMBED_BACKEND` | backend | `local` (fastembed) or `gemini` |
+| `ALLOWED_ORIGINS` | backend | Frontend addresses allowed by CORS |
+| `FIREBASE_PROJECT_ID` | backend | Verifies sign-in tokens |
+| `DAILY_BUDGET`, `RESERVE_FRACTION` | backend | Quota sharing |
+| `VITE_API_URL` | frontend | Backend address |
+| `VITE_FIREBASE_*` | frontend | Firebase web config |
+
+## Deployment
+
+- **Backend:** Docker on Render's free web service (`backend/Dockerfile` installs Tesseract). Uses Gemini embeddings to stay within free memory.
+- **Frontend:** Vercel, root directory `frontend`.
+- **Auth and history:** Firebase, with the Vercel domain added to authorized domains.
 
 ## Tests
 
@@ -68,8 +179,16 @@ Python, FastAPI, PyMuPDF, Tesseract, fastembed, NumPy, Google Gemini, React, Typ
 
 ## Limitations
 
-- Uploaded documents are kept in server memory for 2 hours; quota counters reset when the server restarts.
-- Handwriting OCR is weak. Printed scans work well.
-- Free Gemini tiers can be busy; the backend falls back through a list of models.
+- Uploaded documents live in server memory for 2 hours, and quota counters reset when the server restarts.
+- Handwriting OCR is weak; printed scans work well.
+- Free Gemini tiers can be busy, so the backend tries several models in turn.
 
-Made by Vigesh.
+## Author
+
+**Vigesh** — designed and built Pagehound.
+
+GitHub: [@Vigesh-VS](https://github.com/Vigesh-VS)
+
+## License
+
+MIT. See [LICENSE](LICENSE).
