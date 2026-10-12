@@ -51,8 +51,7 @@ a { color: inherit; }
 .turn { display: flex; flex-direction: column; gap: 6px; max-width: 88%; }
 .turn.user { align-self: flex-end; align-items: flex-end; }
 .turn.assistant { align-self: flex-start; }
-.msg { padding: 11px 16px; border-radius: 14px; font-size: 18px; font-weight: 400; -webkit-text-stroke: 0.25px currentColor; }
-.msg strong, .msg b, .msg h1, .msg h2, .msg h3, .msg h4 { -webkit-text-stroke: 0; }
+.msg { padding: 11px 16px; border-radius: 14px; font-size: 18px; font-weight: 400; }
 .msg p { margin: 0; }
 .msg.user p { white-space: pre-wrap; }
 .md > :last-child { margin-bottom: 0; }

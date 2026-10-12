@@ -5,7 +5,7 @@ from typing import Literal
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from . import config, embeddings, llm
 from .chunking import chunk_pages
@@ -40,7 +40,12 @@ app.add_middleware(
 
 class Turn(BaseModel):
     role: Literal["user", "assistant"]
-    text: str = Field(max_length=2000)
+    text: str
+
+    @field_validator("text")
+    @classmethod
+    def trim(cls, value):
+        return value[:2000]
 
 
 class AskBody(BaseModel):

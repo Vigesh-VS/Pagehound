@@ -168,6 +168,10 @@ export default function App({ onContribute }: { onContribute: () => void }) {
   }, [user?.uid])
 
   useEffect(() => {
+    if (user && msgs.length > 0 && !chatId.current) void persist(msgs, attached)
+  }, [user?.uid])
+
+  useEffect(() => {
     if (user && pending) {
       const file = pending
       setPending(null)
@@ -239,7 +243,7 @@ export default function App({ onContribute }: { onContribute: () => void }) {
     const question = text.trim()
     if (!question || !attached?.id || attached.loading || thinking) return
     const mine = session.current
-    const history = msgs.slice(-6).map((m) => ({ role: m.role, text: m.text }))
+    const history = msgs.slice(-6).map((m) => ({ role: m.role, text: m.text.slice(0, 1500) }))
     const file = attached.sent ? undefined : attached.name
     if (!chatLabel) setChatLabel(attached.name)
     const base: Msg[] = [...msgs, { role: 'user', text: question, ...(file ? { file } : {}) }]

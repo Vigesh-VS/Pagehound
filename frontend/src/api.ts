@@ -9,7 +9,7 @@ async function parse(res: Response) {
   const body = await res.json().catch(() => ({}))
   if (!res.ok) {
     const detail = typeof body.detail === 'string' ? body.detail : ''
-    throw new Error(body.message ?? (detail || 'Something went wrong.'))
+    throw new Error(body.message ?? (detail || (Array.isArray(body.detail) ? 'That request was not accepted. Please try again.' : 'Something went wrong. Please try again.')))
   }
   return body
 }
