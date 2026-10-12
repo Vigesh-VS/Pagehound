@@ -164,6 +164,29 @@ export default function App({ onContribute }: { onContribute: () => void }) {
     setActiveId(id)
   }
 
+  async function resume(all: Msg[], file: Attached | null) {
+    const last = all[all.length - 1]
+    if (!last || last.role !== 'user' || chatDocs.current.length === 0) return
+    const mine = session.current
+    const earlier = all.slice(0, -1)
+    const history = earlier.slice(-6).map((m) => ({ role: m.role, text: m.text.slice(0, 1500) }))
+    setThinking(true)
+    try {
+      const result = await ask(chatDocs.current, last.text, history, await getToken())
+      if (mine !== session.current) return
+      const done: Msg[] = [...all, { role: 'assistant', text: result.answer }]
+      setMsgs(done)
+      void persist(done, file)
+    } catch (e) {
+      if (mine !== session.current) return
+      setError(messageOf(e))
+      setMsgs(earlier)
+      setText(last.text)
+    } finally {
+      if (mine === session.current) setThinking(false)
+    }
+  }
+
   async function loadFromUrl() {
     const id = chatIdFromPath()
     if (!id) {
@@ -179,8 +202,10 @@ export default function App({ onContribute }: { onContribute: () => void }) {
       selectChat(id)
       setChatLabel(local.chatLabel)
       setMsgs(local.msgs)
-      setAttached(local.attached ? { ...local.attached, loading: false, sent: true } : null)
+      const restored = local.attached ? { ...local.attached, loading: false, sent: true } : null
+      setAttached(restored)
       setError('')
+      void resume(local.msgs, restored)
       return
     }
     if (user) {
