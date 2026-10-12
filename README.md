@@ -35,18 +35,19 @@
   <img src="docs/images/mobile.png" alt="Mobile layout" width="22%" />
 </p>
 
-_The chat screenshot uses a sample answer to show the layout._
+_The chat screenshots use a sample answer to show the layout._
 
 ## Features
 
 - **Many file types:** PDF, PNG/JPG/WEBP/BMP/TIFF (OCR), CSV/TSV/XLSX, DOCX, PPTX, TXT, MD.
 - **Scanned pages:** pages with no text layer are detected and read with Tesseract OCR.
 - **Retrieval-augmented answers:** files are split into chunks, embedded, and only the most relevant chunks are sent to Gemini.
-- **Multi-file chats:** questions search every file in the chat, or only the file or file type you mention ("in the pdf", "in the csv").
-- **Math and tables:** equations render with KaTeX and tables render as tables.
-- **Google sign-in:** chat history is saved per user in Firestore with owner-only security rules.
-- **Fair free-tier sharing:** a quota manager divides a daily Gemini budget between active users.
-- **Responsive dark UI:** animated intro, aurora background, works from phone to desktop.
+- **Multi-file chats:** questions search every file in the chat, or only the file or file type you mention ("in the pdf", "in the csv"). Guests and signed-in users can add files to the same chat.
+- **Readable answers:** formulas are drawn in their own boxes with KaTeX, column names and key terms show as highlighted chips, and tables render as tables.
+- **Chats that behave like other chat apps:** every chat has its own address (`/c/<id>`), refreshing keeps your place, a new tab starts fresh, back and forward work, and a question interrupted by a refresh is asked again automatically.
+- **Google sign-in:** chat history is saved per user in Firestore with owner-only security rules. A chat started as a guest moves into your account when you sign in.
+- **Fair free-tier sharing:** a quota manager divides a daily Gemini budget between active users. Busy Gemini models are retried, then the next model is tried.
+- **Responsive dark UI:** animated logo intro, aurora background, solid title bar, works from phone to desktop.
 
 ## How it works
 

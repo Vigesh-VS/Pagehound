@@ -10,7 +10,10 @@
 - Guest and member tiers with different file types, sizes and page limits.
 - Multi-file chats with file-aware retrieval.
 - Frontend: dark glass UI, aurora background, animated logo intro, greeting by time of day, loading file chip, history panel, new chat, Contribute page with UPI QR, mobile layout, PT Serif typography, math and table rendering.
-- Tests: backend 66 passing.
+- Answer styling: wider desktop layout, borderless mobile answers, boxed formulas and highlighted terms.
+- A question interrupted by a refresh is asked again automatically after the page reloads.
+- Resume updated with the live demo and GitHub links.
+- Tests: backend 73 passing.
 
 - Per-chat URLs so refresh, new tabs and back/forward behave like other chat apps; guest chats move into the account on sign-in.
 - Retry on busy Gemini models; a failed question is put back in the input box.
