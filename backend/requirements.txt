@@ -1,0 +1,17 @@
+fastapi
+uvicorn[standard]
+pymupdf
+pytesseract
+pillow
+numpy
+google-genai
+python-dotenv
+python-multipart
+fastembed
+tzdata
+openpyxl
+python-docx
+python-pptx
+google-auth
+requests
+cryptography
