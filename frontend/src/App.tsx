@@ -57,9 +57,11 @@ const normalizeMath = (text: string) =>
     .replace(/\\\[([\s\S]+?)\\\]/g, (_, m) => `\n\n$$\n${m}\n$$\n\n`)
     .replace(/\\\(([\s\S]+?)\\\)/g, (_, m) => `$${m}$`)
     .replace(/\$\$[\s\S]+?\$\$|(?<!\\)\$([^$\n]+)\$/g, (match, inline) =>
-      inline !== undefined && (inline.includes('\\begin{') || inline.length > BLOCK_AT)
-        ? `\n\n$$\n${inline}\n$$\n\n`
-        : match,
+      inline === undefined
+        ? `\n\n$$\n${match.slice(2, -2).trim()}\n$$\n\n`
+        : inline.includes('\\begin{') || inline.length > BLOCK_AT
+          ? `\n\n$$\n${inline}\n$$\n\n`
+          : match,
     )
     .replace(/\\sqrt\{/g, '\\sqrt{\\vphantom{\\Big|}')
 

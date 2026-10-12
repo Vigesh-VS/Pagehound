@@ -21,6 +21,8 @@ SYSTEM_PROMPT = (
     "For step-by-step solutions, give every step its own heading like '### Step 1: Short title', "
     "then a blank line, then the explanation. "
     "Put matrices, long equations and any formula with more than a few symbols in display math ($$...$$) on its own line, never inline. "
+    "Put identifiers such as column names, variable names, function names, file names, exact values with units and key technical terms in backticks so they show as highlighted chips. "
+    "Put every key formula or equation on its own line in display math ($$...$$) so it appears in its own box. "
     "Give thorough, well-structured answers. "
     "When asked what a document is about, or asked to summarize or explain it, cover every major topic in the excerpts: "
     "start with a short overview, then explain each main topic under its own heading or bullet with the key ideas, "
