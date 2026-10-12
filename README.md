@@ -26,16 +26,34 @@
 
 ## Screenshots
 
-<p align="center">
-  <img src="docs/images/home.png" alt="Home screen" width="48%" />
-  <img src="docs/images/chat.png" alt="Chat with an answer" width="48%" />
-</p>
-<p align="center">
-  <img src="docs/images/signin.png" alt="Sign-in dialog" width="48%" />
-  <img src="docs/images/mobile.png" alt="Mobile layout" width="22%" />
-</p>
+<table align="center">
+  <tr>
+    <td align="center" width="50%">
+      <img src="docs/images/screenshot-home.png" alt="Pagehound home screen" /><br />
+      <b>Home</b><br />
+      <sub>Landing screen with a single prompt box. Click + to upload a file, then ask anything about it.</sub>
+    </td>
+    <td align="center" width="50%">
+      <img src="docs/images/screenshot-chat.png" alt="Answered chat with a formula and a table" /><br />
+      <b>Answers from your document</b><br />
+      <sub>Structured replies with headings, a boxed formula, a table and highlighted terms, plus follow-up questions.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="50%">
+      <img src="docs/images/screenshot-signin.png" alt="Google sign-in dialog" /><br />
+      <b>Sign in with Google</b><br />
+      <sub>Signing in unlocks more file types (CSV, Excel, Word, PowerPoint, images) and saves your chat history.</sub>
+    </td>
+    <td align="center" width="50%">
+      <img src="docs/images/screenshot-mobile.png" alt="Pagehound on a phone" width="45%" /><br />
+      <b>Mobile</b><br />
+      <sub>The same chat on a phone: the layout, table and formula adapt to the narrow screen.</sub>
+    </td>
+  </tr>
+</table>
 
-_The chat screenshots use a sample answer to show the layout._
+_The chat screenshots use a sample document and answer to show the layout._
 
 ## Features
 
