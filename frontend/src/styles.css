@@ -62,7 +62,7 @@ a { color: inherit; }
 .md code { font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; font-size: 0.86em; font-weight: 400; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.14); padding: 1px 7px; border-radius: 6px; white-space: normal; overflow-wrap: anywhere; }
 .md pre { background: rgba(255, 255, 255, 0.07); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 12px; padding: 12px 14px; }
 .md pre code { background: none; border: 0; padding: 0; white-space: pre; }
-.msg.user { background: var(--accent); color: var(--accent-ink); }
+.msg.user { background: var(--accent); color: var(--accent-ink); -webkit-text-stroke: 0.3px currentColor; }
 .msg.assistant { border: 1px solid rgba(255, 255, 255, 0.16); background: var(--glass); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35); }
 .msg.note { color: var(--muted); border-style: dashed; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }

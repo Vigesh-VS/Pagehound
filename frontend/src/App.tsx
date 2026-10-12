@@ -5,6 +5,28 @@ import { newChatId, removeChat, saveChat, subscribeChats, type Chat, type Stored
 
 const Answer = lazy(() => import('./Answer'))
 
+const SNAPSHOT = 'pagehound-session'
+
+type Snapshot = { uid: string | null; chatId: string | null; chatLabel: string; msgs: StoredMsg[]; docIds: string[]; attached: { name: string; id?: string; info?: string } | null }
+
+function readSnapshot(): Snapshot | null {
+  try {
+    const raw = localStorage.getItem(SNAPSHOT)
+    return raw ? (JSON.parse(raw) as Snapshot) : null
+  } catch {
+    return null
+  }
+}
+
+function writeSnapshot(snapshot: Snapshot | null) {
+  try {
+    if (snapshot) localStorage.setItem(SNAPSHOT, JSON.stringify(snapshot))
+    else localStorage.removeItem(SNAPSHOT)
+  } catch {
+    return
+  }
+}
+
 type Msg = StoredMsg
 
 const Chevron = () => (
@@ -115,6 +137,7 @@ export default function App({ onContribute }: { onContribute: () => void }) {
   const uploadSeq = useRef(0)
   const chatDocs = useRef<string[]>([])
   const chatId = useRef<string | null>(null)
+  const [hydrated, setHydrated] = useState(false)
 
   const ready = !!attached?.id && !attached.loading
   const hasChat = msgs.length > 0
@@ -124,6 +147,36 @@ export default function App({ onContribute }: { onContribute: () => void }) {
     chatId.current = id
     setActiveId(id)
   }
+
+  useEffect(() => {
+    if (!authReady || hydrated) return
+    const saved = readSnapshot()
+    if (saved && saved.uid === (user?.uid ?? null) && saved.msgs.length > 0) {
+      chatDocs.current = saved.docIds
+      selectChat(saved.chatId)
+      setChatLabel(saved.chatLabel)
+      setMsgs(saved.msgs)
+      setAttached(saved.attached ? { ...saved.attached, loading: false, sent: true } : null)
+    }
+    setHydrated(true)
+  }, [authReady])
+
+  useEffect(() => {
+    if (!hydrated) return
+    if (msgs.length === 0 || attached?.loading) {
+      if (msgs.length === 0 && !attached) writeSnapshot(null)
+      return
+    }
+    const ids = [...new Set([...chatDocs.current, ...(attached?.id ? [attached.id] : [])])]
+    writeSnapshot({
+      uid: user?.uid ?? null,
+      chatId: chatId.current,
+      chatLabel,
+      msgs,
+      docIds: ids,
+      attached: attached ? { name: attached.name, id: attached.id, info: attached.info } : null,
+    })
+  }, [hydrated, msgs, chatLabel, attached, activeId, user?.uid])
 
   useLayoutEffect(() => {
     const box = brandRef.current
