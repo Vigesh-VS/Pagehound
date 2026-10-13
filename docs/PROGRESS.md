@@ -17,7 +17,7 @@
 - Resume updated with the live demo and GitHub links.
 - Tests: backend 154 passing.
 - OCR upgrade: confidence-based retries, clean-up, auto-rotation, table line removal, text in photos. Test PDF fact recall 63% → 95%.
-- Answer-quality evaluation with key-fact checks and an LLM judge (faithfulness, correctness, abstention).
+- Answer-quality evaluation with key-fact checks and an LLM judge. First run: faithfulness 5.00/5, correctness 4.86/5, 100% correct abstentions on 4 unanswerable questions.
 - Query decomposition for multi-question messages, clearer handling of mixed on-topic and off-topic questions, animated thinking indicator. Found by testing with the Helios test PDF.
 - Security and privacy pass: production-safe ENV default, security headers on site and API, privacy notice and README Privacy section, dependency audit (0 known vulnerabilities).
 - Final evaluation: live setup R@8 0.98, MRR 0.82; reranker R@1 0.85, MRR 0.90 but ~1.5 s/query, kept off on Render.

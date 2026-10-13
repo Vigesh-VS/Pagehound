@@ -211,6 +211,18 @@ cd backend
 python eval/answers.py --save   # about 50 Gemini calls, a few minutes on the free tier
 ```
 
+Results (25 questions, answers and judge from the Gemini flash-lite family):
+
+| Metric | Score |
+|---|---|
+| Key facts present | 100% |
+| Faithfulness | 5.00 / 5 |
+| Correctness | 4.86 / 5 |
+| Answered when it should | 100% |
+| Said "not found" when it should (4 unanswerable questions) | 100% |
+
+The three answers scored 4/5 were correct but left out a secondary detail (an accrual rate, a stipend, a small accuracy drop). Caveats: the set is small and written alongside the documents, and a judge from the same model family can be lenient, so these numbers are a regression check rather than a benchmark.
+
 ## Security and prompt injection
 
 Everything a user controls (the question, the chat history and the text inside uploaded files) is treated as untrusted. The defences are layered so that no single check has to be perfect:
