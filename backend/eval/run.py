@@ -118,6 +118,10 @@ def main():
     args = parser.parse_args()
 
     embed_docs, embed_query = app_embedder() if args.embedder == "app" else hash_embedder()
+    if args.rerank:
+        from app.rerank import rerank as warm
+
+        warm("warm up", ["the reranker is loaded before timing starts"])
     questions = [json.loads(line) for line in (ROOT / "questions.jsonl").read_text().splitlines() if line.strip()]
     units = load_units()
     corpora = {}

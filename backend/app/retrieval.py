@@ -118,6 +118,8 @@ def select(doc, query_vector, query, question, limit, hybrid=None, mmr=None, rer
     order, dense = rank(doc, query_vector, query, hybrid)
     if _setting(rerank, config.RERANK) and len(order) > limit:
         order = rerank_order(doc, order, query)
+        if _setting(hybrid, config.HYBRID):
+            order = boost_exact(doc, order, query)
     picked = choose(order, len(order), is_broad(question), limit, doc.vectors, _setting(mmr, config.MMR))
     return picked, dense
 

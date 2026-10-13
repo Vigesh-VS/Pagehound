@@ -173,3 +173,11 @@ def test_exact_boost_respects_code_boundaries():
 def test_common_codes_are_not_boosted():
     doc = make_doc(["see A1 note"] * 10, [unit(0)] * 10)
     assert retrieval.boost_exact(doc, list(range(10)), "A1") == list(range(10))
+
+
+def test_exact_match_stays_first_after_reranking(monkeypatch):
+    texts = [f"order ORD-10{i:02d} details" for i in range(12)]
+    doc = make_doc(texts, [unit(0)] * 12)
+    monkeypatch.setattr(retrieval, "rerank_texts", lambda q, t: [float(len(t) - n) for n in range(len(t))])
+    picked, _ = retrieval.select(doc, unit(0), "status of ORD-1007", "status of ORD-1007", 3, hybrid=True, mmr=False, rerank=True)
+    assert picked[0] == 7
