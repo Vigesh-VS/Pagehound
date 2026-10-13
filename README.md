@@ -60,6 +60,7 @@ _The chat screenshots use a sample document and answer to show the layout._
 - **Many file types:** PDF, PNG/JPG/WEBP/BMP/TIFF (OCR), CSV/TSV/XLSX, DOCX, PPTX, TXT, MD.
 - **Scanned pages:** pages with no text layer are detected and read with Tesseract OCR.
 - **Retrieval-augmented answers:** files are split into chunks, embedded, and only the most relevant chunks are sent to Gemini.
+- **Measured retrieval quality:** hybrid search (BM25 + embeddings with Reciprocal Rank Fusion), follow-up query rewriting, structure-aware chunking, MMR diversity and an optional cross-encoder reranker, checked against a labelled evaluation set with Recall@k and MRR.
 - **Multi-file chats:** questions search every file in the chat, or only the file or file type you mention ("in the pdf", "in the csv"). Guests and signed-in users can add files to the same chat.
 - **Readable answers:** formulas are drawn in their own boxes with KaTeX, column names and key terms show as highlighted chips, and tables render as tables.
 - **Chats that behave like other chat apps:** every chat has its own address (`/c/<id>`), refreshing keeps your place, a new tab starts fresh, back and forward work, and a question interrupted by a refresh is asked again automatically.
@@ -97,12 +98,12 @@ flowchart TD
     E -- Image --> H
     E -- CSV / XLSX --> J[Summary statistics plus row groups]
     E -- DOCX / PPTX / TXT --> K[Text parts, slides and notes]
-    H --> L[Split into chunks of 900 characters]
+    H --> L[Structure-aware chunks: headings kept, sentence boundaries, whole table rows]
     I --> L
     J --> L
     K --> L
     L --> M[Embed chunks]
-    M --> N[(In-memory store, 2 hour life)]
+    M --> N[(In-memory store with BM25 keyword index, 2 hour life)]
 ```
 
 ### Asking a question
@@ -120,8 +121,10 @@ sequenceDiagram
     API->>API: Check token and daily quota
     API->>Store: Load the files in this chat
     API->>API: Narrow to the file or type named in the question
-    API->>G: Embed the question
-    API->>API: Rank chunks by cosine similarity
+    API->>API: Rewrite a follow-up using the previous question
+    API->>G: Embed the search query
+    API->>API: Hybrid ranking: embeddings + BM25, fused with RRF
+    API->>API: Optional cross-encoder rerank, then MMR to skip near-duplicates
     API->>G: Question + best excerpts + recent history
     G-->>API: Answer (falls back to the next model if busy)
     API-->>App: Answer
@@ -139,6 +142,30 @@ flowchart LR
     S --> M[Per-minute limits per user and globally]
     L --> M
 ```
+
+## Retrieval quality
+
+The answer can only be as good as the excerpts sent to Gemini, so retrieval is tuned and measured, not guessed.
+
+| Technique | What it fixes | Where |
+|---|---|---|
+| **Structure-aware chunking** | Chunks follow headings and sentence boundaries, each chunk keeps its section heading, and table rows are never cut in half. | `app/chunking.py` |
+| **Hybrid search** | Embeddings (dense retrieval) understand meaning but miss exact codes like `ORD-1047` or `E4`; **BM25** keyword search catches them. The two rankings are merged with **Reciprocal Rank Fusion (RRF)**. | `app/lexical.py`, `app/retrieval.py` |
+| **Query rewriting** | A follow-up such as "And for the secondary one?" is searched together with the previous question, so it finds the right section. | `app/query.py` |
+| **MMR (Maximal Marginal Relevance)** | Stops repeated boilerplate from filling several of the excerpt slots. | `app/retrieval.py` |
+| **Cross-encoder reranking** | A second model reads the question and each candidate together and re-orders the top 20. Off by default (`RERANK=1` to enable) until it proves worth its latency on the free server. | `app/rerank.py` |
+
+### Evaluation
+
+`backend/eval/` holds a small **golden dataset**: four sample documents (handbook, product manual, research notes, orders table) and 46 labelled questions covering paraphrased, exact-code and follow-up questions. The script adds one technique at a time and reports **Recall@1/3/8** (how often the right chunk is retrieved) and **MRR** (how high it ranks).
+
+```powershell
+cd backend
+python eval/run.py --save            # uses the embedding backend from .env
+python eval/run.py --rerank --save   # also measures the reranker
+```
+
+Results are written to `backend/eval/results.md`. Every switch can be turned off in `.env` (`HYBRID`, `MMR`, `REWRITE_FOLLOW_UPS`, `STRUCTURED_CHUNKS`, `RERANK`).
 
 ## Security and prompt injection
 

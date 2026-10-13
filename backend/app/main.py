@@ -8,12 +8,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
 
-from . import config, embeddings, guard, llm
+from . import config, embeddings, guard, llm, rerank
 from .chunking import chunk_pages
 from .auth import identify
 from .extractors import UnsupportedType, extract, file_extension
 from .pdf_utils import ExtractError
 from .quota import quota
+from .query import contextualize
 from .retrieval import gather_sources, narrow_docs
 from .store import store
 
@@ -27,6 +28,10 @@ async def lifespan(app):
         embeddings.warmup()
     except Exception as exc:
         print(f"Embedding model could not be loaded: {exc}")
+    try:
+        rerank.warmup()
+    except Exception as exc:
+        print(f"Reranker could not be loaded: {exc}")
     yield
 
 
@@ -59,7 +64,12 @@ class AskBody(BaseModel):
 
 @app.get("/health")
 def health():
-    return {"ok": True, "model": config.GEMINI_MODEL, "embedding_model": config.GEMINI_EMBED_MODEL if config.EMBED_BACKEND == "gemini" else config.EMBED_MODEL}
+    return {
+        "ok": True,
+        "model": config.GEMINI_MODEL,
+        "embedding_model": config.GEMINI_EMBED_MODEL if config.EMBED_BACKEND == "gemini" else config.EMBED_MODEL,
+        "retrieval": {"hybrid": config.HYBRID, "mmr": config.MMR, "rewrite_follow_ups": config.REWRITE_FOLLOW_UPS, "structured_chunks": config.STRUCTURED_CHUNKS, "rerank": config.RERANK},
+    }
 
 
 @app.get("/quota")
@@ -142,8 +152,10 @@ def ask(request: Request, body: AskBody):
             headers=headers,
         )
 
-    query_vector = embeddings.embed_query(body.question)
-    sources = gather_sources(docs, query_vector, body.question)
+    history = guard.safe_history([t.model_dump() for t in body.history])
+    search = contextualize(body.question, history) if config.REWRITE_FOLLOW_UPS else body.question
+    query_vector = embeddings.embed_query(search)
+    sources = gather_sources(docs, query_vector, body.question, search)
 
     try:
         text = llm.answer(body.question, sources, [t.model_dump() for t in body.history])

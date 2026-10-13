@@ -1,0 +1,121 @@
+order_id,date,region,product,quantity,unit_price,status,sales_rep
+ORD-1001,2026-06-14,West,Smart Sensor Kit,5,899,Delivered,Meera
+ORD-1002,2026-01-26,South,Smart Sensor Kit,6,3999,Cancelled,Anita
+ORD-1003,2026-04-12,West,Smart Sensor Kit,37,499,Shipped,Joseph
+ORD-1004,2026-01-28,West,Smart Sensor Kit,15,499,Returned,Rahul
+ORD-1005,2026-05-23,South,Soil Tester,8,899,Pending,Farah
+ORD-1006,2026-03-13,South,Water Filter,7,899,Delivered,Farah
+ORD-1007,2026-01-16,West,Soil Tester,28,2499,Cancelled,Farah
+ORD-1008,2026-08-21,East,Solar Lamp,12,1299,Delivered,Farah
+ORD-1009,2026-05-26,West,Water Filter,29,2499,Returned,Anita
+ORD-1010,2026-02-11,North,Drip Irrigation Set,12,3999,Pending,Meera
+ORD-1011,2026-01-12,East,Water Filter,23,899,Cancelled,Farah
+ORD-1012,2026-08-12,North,Water Filter,31,499,Delivered,Joseph
+ORD-1013,2026-05-28,West,Water Filter,25,2499,Delivered,Vikram
+ORD-1014,2026-06-15,North,Drip Irrigation Set,4,1299,Pending,Rahul
+ORD-1015,2026-04-22,West,Drip Irrigation Set,6,1299,Cancelled,Vikram
+ORD-1016,2026-09-18,South,Drip Irrigation Set,36,2499,Cancelled,Meera
+ORD-1017,2026-07-17,South,Smart Sensor Kit,12,1299,Shipped,Joseph
+ORD-1018,2026-04-10,West,Soil Tester,12,2499,Pending,Anita
+ORD-1019,2026-03-23,East,Soil Tester,37,2499,Shipped,Joseph
+ORD-1020,2026-09-11,West,Soil Tester,26,3999,Cancelled,Vikram
+ORD-1021,2026-02-25,West,Smart Sensor Kit,13,499,Shipped,Vikram
+ORD-1022,2026-03-13,East,Soil Tester,4,499,Delivered,Farah
+ORD-1023,2026-03-27,North,Water Filter,40,499,Delivered,Rahul
+ORD-1024,2026-07-14,East,Water Filter,39,2499,Cancelled,Anita
+ORD-1025,2026-02-25,West,Drip Irrigation Set,31,2499,Delivered,Rahul
+ORD-1026,2026-02-20,East,Drip Irrigation Set,11,899,Delivered,Rahul
+ORD-1027,2026-09-21,South,Soil Tester,2,899,Pending,Joseph
+ORD-1028,2026-02-18,East,Solar Lamp,23,1299,Returned,Farah
+ORD-1029,2026-09-20,South,Soil Tester,13,1299,Cancelled,Joseph
+ORD-1030,2026-04-16,West,Water Filter,2,499,Pending,Vikram
+ORD-1031,2026-05-16,East,Drip Irrigation Set,23,2499,Delivered,Rahul
+ORD-1032,2026-02-17,West,Solar Lamp,22,1299,Cancelled,Farah
+ORD-1033,2026-01-25,East,Smart Sensor Kit,8,3999,Shipped,Vikram
+ORD-1034,2026-03-23,East,Smart Sensor Kit,26,3999,Cancelled,Joseph
+ORD-1035,2026-02-15,South,Solar Lamp,2,1299,Returned,Vikram
+ORD-1036,2026-03-25,East,Solar Lamp,36,899,Shipped,Anita
+ORD-1037,2026-01-13,South,Drip Irrigation Set,13,1299,Delivered,Meera
+ORD-1038,2026-04-19,South,Soil Tester,21,2499,Returned,Vikram
+ORD-1039,2026-03-11,East,Drip Irrigation Set,38,899,Cancelled,Farah
+ORD-1040,2026-03-27,South,Soil Tester,33,499,Cancelled,Rahul
+ORD-1041,2026-01-14,South,Solar Lamp,31,899,Delivered,Farah
+ORD-1042,2026-01-20,West,Smart Sensor Kit,36,499,Shipped,Rahul
+ORD-1043,2026-05-11,North,Soil Tester,29,899,Delivered,Anita
+ORD-1044,2026-08-20,South,Water Filter,29,899,Returned,Vikram
+ORD-1045,2026-09-17,East,Soil Tester,13,3999,Shipped,Vikram
+ORD-1046,2026-02-22,West,Water Filter,5,1299,Cancelled,Anita
+ORD-1047,2026-05-14,East,Soil Tester,17,899,Returned,Farah
+ORD-1048,2026-08-17,North,Drip Irrigation Set,32,1299,Shipped,Rahul
+ORD-1049,2026-07-26,West,Water Filter,27,1299,Pending,Meera
+ORD-1050,2026-02-21,North,Water Filter,36,3999,Cancelled,Joseph
+ORD-1051,2026-01-22,East,Soil Tester,40,2499,Returned,Anita
+ORD-1052,2026-02-17,North,Smart Sensor Kit,17,2499,Delivered,Rahul
+ORD-1053,2026-05-14,West,Water Filter,26,1299,Returned,Farah
+ORD-1054,2026-08-20,North,Water Filter,4,1299,Cancelled,Anita
+ORD-1055,2026-05-10,North,Water Filter,6,899,Shipped,Anita
+ORD-1056,2026-05-13,West,Smart Sensor Kit,22,899,Cancelled,Meera
+ORD-1057,2026-03-11,South,Smart Sensor Kit,11,2499,Delivered,Rahul
+ORD-1058,2026-04-19,East,Soil Tester,14,2499,Cancelled,Farah
+ORD-1059,2026-03-18,East,Smart Sensor Kit,17,499,Delivered,Anita
+ORD-1060,2026-09-27,South,Soil Tester,31,1299,Cancelled,Anita
+ORD-1061,2026-07-25,West,Soil Tester,20,1299,Shipped,Meera
+ORD-1062,2026-04-14,West,Water Filter,4,1299,Delivered,Anita
+ORD-1063,2026-05-23,South,Smart Sensor Kit,6,3999,Returned,Joseph
+ORD-1064,2026-05-17,East,Smart Sensor Kit,30,1299,Shipped,Meera
+ORD-1065,2026-08-10,East,Water Filter,22,899,Pending,Rahul
+ORD-1066,2026-01-19,South,Water Filter,12,499,Pending,Vikram
+ORD-1067,2026-02-25,East,Soil Tester,13,1299,Returned,Anita
+ORD-1068,2026-02-18,North,Solar Lamp,26,899,Delivered,Vikram
+ORD-1069,2026-01-19,East,Solar Lamp,6,899,Returned,Rahul
+ORD-1070,2026-07-20,West,Solar Lamp,19,899,Shipped,Anita
+ORD-1071,2026-09-23,South,Soil Tester,33,899,Delivered,Joseph
+ORD-1072,2026-04-12,North,Smart Sensor Kit,9,2499,Delivered,Vikram
+ORD-1073,2026-08-27,North,Smart Sensor Kit,35,1299,Cancelled,Meera
+ORD-1074,2026-01-24,North,Soil Tester,35,499,Returned,Anita
+ORD-1075,2026-08-18,North,Water Filter,16,1299,Shipped,Joseph
+ORD-1076,2026-08-25,West,Smart Sensor Kit,31,2499,Delivered,Farah
+ORD-1077,2026-04-12,South,Water Filter,17,2499,Returned,Farah
+ORD-1078,2026-03-10,West,Smart Sensor Kit,32,2499,Delivered,Joseph
+ORD-1079,2026-04-25,East,Soil Tester,19,3999,Cancelled,Vikram
+ORD-1080,2026-02-27,South,Water Filter,6,3999,Delivered,Meera
+ORD-1081,2026-08-12,West,Water Filter,25,1299,Shipped,Anita
+ORD-1082,2026-02-14,East,Water Filter,9,899,Returned,Meera
+ORD-1083,2026-02-21,South,Drip Irrigation Set,32,3999,Delivered,Rahul
+ORD-1084,2026-01-25,West,Drip Irrigation Set,20,1299,Cancelled,Meera
+ORD-1085,2026-07-20,North,Water Filter,1,2499,Pending,Vikram
+ORD-1086,2026-02-16,North,Water Filter,17,2499,Delivered,Vikram
+ORD-1087,2026-07-28,North,Water Filter,28,2499,Delivered,Meera
+ORD-1088,2026-02-11,East,Solar Lamp,16,2499,Cancelled,Farah
+ORD-1089,2026-08-21,West,Solar Lamp,33,1299,Cancelled,Joseph
+ORD-1090,2026-04-12,North,Drip Irrigation Set,29,899,Shipped,Joseph
+ORD-1091,2026-05-25,North,Soil Tester,9,1299,Cancelled,Vikram
+ORD-1092,2026-06-19,East,Water Filter,17,3999,Shipped,Meera
+ORD-1093,2026-08-27,West,Smart Sensor Kit,11,1299,Delivered,Rahul
+ORD-1094,2026-09-25,South,Drip Irrigation Set,22,3999,Cancelled,Rahul
+ORD-1095,2026-09-16,South,Smart Sensor Kit,12,2499,Returned,Anita
+ORD-1096,2026-06-17,East,Water Filter,37,1299,Delivered,Joseph
+ORD-1097,2026-07-22,West,Soil Tester,14,3999,Pending,Meera
+ORD-1098,2026-01-25,East,Soil Tester,24,1299,Returned,Farah
+ORD-1099,2026-04-12,East,Solar Lamp,25,3999,Cancelled,Vikram
+ORD-1100,2026-05-10,South,Smart Sensor Kit,28,3999,Returned,Vikram
+ORD-1101,2026-01-12,West,Soil Tester,30,3999,Shipped,Anita
+ORD-1102,2026-04-14,South,Soil Tester,7,3999,Delivered,Farah
+ORD-1103,2026-01-10,South,Solar Lamp,37,499,Pending,Rahul
+ORD-1104,2026-05-26,West,Smart Sensor Kit,7,499,Pending,Farah
+ORD-1105,2026-04-22,East,Solar Lamp,39,499,Delivered,Farah
+ORD-1106,2026-05-24,East,Water Filter,16,3999,Returned,Rahul
+ORD-1107,2026-09-17,North,Drip Irrigation Set,20,499,Delivered,Rahul
+ORD-1108,2026-08-23,North,Water Filter,15,3999,Pending,Rahul
+ORD-1109,2026-08-11,East,Drip Irrigation Set,24,3999,Shipped,Anita
+ORD-1110,2026-05-26,North,Solar Lamp,32,1299,Pending,Rahul
+ORD-1111,2026-04-24,South,Water Filter,19,499,Returned,Vikram
+ORD-1112,2026-03-17,West,Drip Irrigation Set,4,899,Shipped,Vikram
+ORD-1113,2026-01-16,North,Soil Tester,10,3999,Delivered,Joseph
+ORD-1114,2026-01-15,West,Drip Irrigation Set,21,499,Delivered,Rahul
+ORD-1115,2026-06-16,South,Soil Tester,30,499,Pending,Joseph
+ORD-1116,2026-07-21,East,Drip Irrigation Set,11,499,Delivered,Anita
+ORD-1117,2026-05-12,East,Drip Irrigation Set,8,899,Shipped,Vikram
+ORD-1118,2026-06-19,West,Smart Sensor Kit,4,3999,Shipped,Meera
+ORD-1119,2026-09-24,South,Water Filter,24,3999,Delivered,Joseph
+ORD-1120,2026-07-17,West,Smart Sensor Kit,25,499,Cancelled,Anita

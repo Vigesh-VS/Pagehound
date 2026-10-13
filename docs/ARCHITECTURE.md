@@ -27,6 +27,15 @@
 
 A daily budget is split into an 80% shared pool and a 20% reserve. Each active user's share is the pool divided by active users; users who arrive late use the reserve. Per-minute limits apply per user and globally. Guests also have daily question and upload caps. Counters reset at midnight Pacific, matching Google's quota reset.
 
+## Retrieval
+
+1. Upload: `chunk_structured` splits each page into sections at detected headings, packs whole sentences up to 900 characters with about 150 characters of overlap, prefixes each chunk with its heading and merges very small neighbours. Table units are packed by whole rows.
+2. Ask: `query.contextualize` joins a follow-up with the previous user question; the result is embedded.
+3. `retrieval.rank` orders chunks by cosine similarity and, with `HYBRID`, by BM25 as well, fusing the two with Reciprocal Rank Fusion (k = 60). The BM25 index is built on the first question and cached on the document.
+4. With `RERANK=1`, the top 20 are re-scored by the `ms-marco-MiniLM-L-6-v2` cross-encoder (baked into the Docker image).
+5. `retrieval.choose` takes the top 8 (or 16 spread across the file for broad questions), using MMR (λ = 0.75) to skip near-duplicates, and sends them in reading order.
+6. `eval/run.py` measures Recall@k and MRR for each step on the golden dataset.
+
 ## Prompt-injection defences
 
 1. `guard.classify` refuses prompt-extraction and override attempts before quota or the model is used.

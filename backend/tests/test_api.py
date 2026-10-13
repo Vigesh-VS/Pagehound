@@ -163,3 +163,13 @@ def test_injection_question_is_refused_without_using_quota(client, monkeypatch):
     assert response.status_code == 200
     assert body["answer"] == guard.REFUSAL and body["blocked"] is True
     assert body["quota"]["your_used"] == 0
+
+
+def test_follow_up_questions_are_searched_with_context(client, monkeypatch):
+    seen = []
+    original = embeddings.embed_query
+    monkeypatch.setattr(embeddings, "embed_query", lambda text: seen.append(text) or original(text))
+    doc_id = upload(client, text_pdf()).json()["doc_id"]
+    history = [{"role": "user", "text": "When is the invoice payment due?"}, {"role": "assistant", "text": "In 30 days."}]
+    client.post("/ask", json={"doc_id": doc_id, "question": "And the late fee?", "history": history}, headers={"x-debug-user": "u1"})
+    assert seen[-1] == "When is the invoice payment due? And the late fee?"

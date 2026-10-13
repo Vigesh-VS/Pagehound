@@ -14,6 +14,7 @@ class Document:
     chunks: list
     vectors: object
     created: float = field(default_factory=time.time)
+    lexical: object = None
 
 
 class DocStore:

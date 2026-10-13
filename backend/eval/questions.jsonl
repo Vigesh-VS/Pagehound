@@ -1,0 +1,46 @@
+{"type": "semantic", "question": "How much paid holiday do full-time staff get each year?", "history": [], "gold": ["24 days of paid annual leave"]}
+{"type": "exact", "question": "What is form HR-17B used for?", "history": [], "gold": ["submit form HR-17B in the people portal"]}
+{"type": "exact", "question": "Under EXP-204, how long do I have to submit a claim?", "history": [], "gold": ["within 45 days of the expense date"]}
+{"type": "semantic", "question": "Can I keep unused vacation days for next year?", "history": [], "gold": ["Up to 8 unused days may be carried"]}
+{"type": "semantic", "question": "Do I need a doctor's note when I'm ill?", "history": [], "gold": ["A medical certificate is required only"]}
+{"type": "semantic", "question": "How long can a new parent stay home on full salary?", "history": [], "gold": ["26 weeks at full pay"]}
+{"type": "semantic", "question": "What money do I get to set up a workspace at home?", "history": [], "gold": ["one-time home office allowance of Rs 25,000"]}
+{"type": "exact", "question": "Which extension do I call to report a stolen laptop?", "history": [], "gold": ["extension 4410"]}
+{"type": "semantic", "question": "How long should my password be?", "history": [], "gold": ["at least 14 characters long"]}
+{"type": "semantic", "question": "When are appraisals held?", "history": [], "gold": ["twice a year, in April and October"]}
+{"type": "semantic", "question": "How much can I spend on courses and books?", "history": [], "gold": ["annual learning budget of Rs 40,000"]}
+{"type": "semantic", "question": "What's the hotel limit in big cities?", "history": [], "gold": ["Rs 6,500 per night"]}
+{"type": "semantic", "question": "Is extra work paid more?", "history": [], "gold": ["1.5 times the normal hourly rate"]}
+{"type": "semantic", "question": "Which hours must everyone be available?", "history": [], "gold": ["11:00 to 16:00 IST"]}
+{"type": "follow_up", "question": "And for the secondary one?", "history": ["How long is parental leave for the primary caregiver?"], "gold": ["4 weeks at full pay for the secondary caregiver"]}
+{"type": "follow_up", "question": "What about international trips?", "history": ["What is the daily meal allowance for domestic travel?"], "gold": ["USD 60"]}
+{"type": "follow_up", "question": "How often is it reviewed?", "history": ["Can I work fully remote?"], "gold": ["reviewed every six months"]}
+{"type": "follow_up", "question": "Who holds that review?", "history": ["When does probation end for new joiners?"], "gold": ["the manager holds a confirmation review"]}
+{"type": "semantic", "question": "How quiet is the purifier at night?", "history": [], "gold": ["about 22 dB of noise"]}
+{"type": "exact", "question": "What does E5 mean?", "history": [], "gold": ["E5 appears when the unit overheats"]}
+{"type": "exact", "question": "What does error E3 indicate?", "history": [], "gold": ["E3 shows that the particle sensor is blocked"]}
+{"type": "exact", "question": "Which part number is the replacement filter?", "history": [], "gold": ["part number AX2-HEPA-13"]}
+{"type": "exact", "question": "Is AX2-HEPA-13 covered by the warranty?", "history": [], "gold": ["Filters are consumables"]}
+{"type": "semantic", "question": "How often should I change the filter?", "history": [], "gold": ["every 6 to 8 months"]}
+{"type": "semantic", "question": "How do I stop kids from pressing the buttons?", "history": [], "gold": ["press and hold the mode and timer buttons together"]}
+{"type": "semantic", "question": "How do I link it to my phone?", "history": [], "gold": ["hold the Wi-Fi button for five seconds"]}
+{"type": "semantic", "question": "How big a room can it clean?", "history": [], "gold": ["rooms up to 45 square metres"]}
+{"type": "semantic", "question": "What happens to my coverage if water gets inside?", "history": [], "gold": ["damaged by liquid"]}
+{"type": "semantic", "question": "How do I reset the filter counter?", "history": [], "gold": ["holding the filter button for seven seconds"]}
+{"type": "follow_up", "question": "What should I do about it?", "history": ["What does error E2 mean?"], "gold": ["Turn the purifier off for ten minutes"]}
+{"type": "follow_up", "question": "Where is it located?", "history": ["How do I clean the particle sensor?"], "gold": ["located on the left side of the unit"]}
+{"type": "semantic", "question": "Why won't it turn on the first time?", "history": [], "gold": ["will not start while the wrap is still on"]}
+{"type": "semantic", "question": "How accurate is the best model?", "history": [], "gold": ["94.2 percent top-1 accuracy", "94.2 percent accuracy on the held-out"]}
+{"type": "semantic", "question": "Why did they split the data by farm?", "history": [], "gold": ["prevents the model from memorising background details"]}
+{"type": "semantic", "question": "Which disease was hardest to classify?", "history": [], "gold": ["early blight in potato was the hardest class"]}
+{"type": "semantic", "question": "What learning rate did they use?", "history": [], "gold": ["starting at 0.003"]}
+{"type": "semantic", "question": "Which augmentation mattered most?", "history": [], "gold": ["lowered accuracy by 2.6 points"]}
+{"type": "semantic", "question": "How much smaller did quantization make the model?", "history": [], "gold": ["from 7.4 MB to 2.1 MB"]}
+{"type": "semantic", "question": "How slow is ResNet-50 on the phone?", "history": [], "gold": ["412 milliseconds per image"]}
+{"type": "semantic", "question": "What can't the model detect?", "history": [], "gold": ["cannot detect pest damage"]}
+{"type": "exact", "question": "How many images are in the dataset?", "history": [], "gold": ["18,400 leaf images"]}
+{"type": "follow_up", "question": "Why is that number misleading?", "history": ["What happens when the split is done by image instead of by farm?"], "gold": ["an overestimate caused by data leakage"]}
+{"type": "exact", "question": "What is the status of order ORD-1047?", "history": [], "gold": ["ORD-1047 | date: 2026-05-14"]}
+{"type": "exact", "question": "Who handled order ORD-1089?", "history": [], "gold": ["ORD-1089 | date: 2026-08-21"]}
+{"type": "exact", "question": "How many units were in ORD-1010?", "history": [], "gold": ["ORD-1010 | date: 2026-02-11"]}
+{"type": "semantic", "question": "How many orders are in the table?", "history": [], "gold": ["Table with 120 data rows"]}
