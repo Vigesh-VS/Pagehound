@@ -27,6 +27,15 @@
 
 A daily budget is split into an 80% shared pool and a 20% reserve. Each active user's share is the pool divided by active users; users who arrive late use the reserve. Per-minute limits apply per user and globally. Guests also have daily question and upload caps. Counters reset at midnight Pacific, matching Google's quota reset.
 
+## Prompt-injection defences
+
+1. `guard.classify` refuses prompt-extraction and override attempts before quota or the model is used.
+2. `llm.build_prompt` fences untrusted text in tagged blocks and `guard.neutralize` strips spoofed tags.
+3. `guard.safe_history` drops injected user turns from the client-supplied history.
+4. The system prompt marks all fenced text as data and the instructions as confidential.
+5. `guard.leaks` checks every reply for the canary or copied instruction text, ignoring text that also appears in the retrieved excerpts.
+6. `Answer.tsx` renders no images or raw HTML and only safe `http(s)` links.
+
 ## Frontend notes
 
 - Every chat has its own address (`/c/<id>`), like other chat apps. Refreshing a tab keeps that tab's chat, a new tab starts on the home screen, and back/forward move between chats. Each chat is also cached in the browser under its own key (guest chats included); signed-in chats are saved in Firestore, and a guest chat is moved into the account on sign-in.

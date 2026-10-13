@@ -1,3 +1,4 @@
+import logging
 import threading
 from contextlib import asynccontextmanager
 from typing import Literal
@@ -7,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, field_validator
 
-from . import config, embeddings, llm
+from . import config, embeddings, guard, llm
 from .chunking import chunk_pages
 from .auth import identify
 from .extractors import UnsupportedType, extract, file_extension
@@ -17,6 +18,7 @@ from .retrieval import gather_sources, narrow_docs
 from .store import store
 
 processing = threading.Semaphore(config.PROCESS_SLOTS)
+log = logging.getLogger("uvicorn.error")
 
 
 @asynccontextmanager
@@ -124,6 +126,11 @@ def ask(request: Request, body: AskBody):
     if not docs:
         raise HTTPException(404, "Document not found or expired. Please upload it again.")
     docs = narrow_docs(docs, body.question)
+
+    blocked = guard.classify(body.question)
+    if blocked:
+        log.warning("Blocked a %s attempt", blocked)
+        return {"answer": guard.REFUSAL, "sources": [], "quota": quota.status(user), "blocked": True}
 
     cap = None if who.member else config.GUEST_QUESTIONS_PER_DAY
     decision = quota.check_and_consume(user, cap)

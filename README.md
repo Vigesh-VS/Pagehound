@@ -65,6 +65,7 @@ _The chat screenshots use a sample document and answer to show the layout._
 - **Chats that behave like other chat apps:** every chat has its own address (`/c/<id>`), refreshing keeps your place, a new tab starts fresh, back and forward work, and a question interrupted by a refresh is asked again automatically.
 - **Google sign-in:** chat history is saved per user in Firestore with owner-only security rules. A chat started as a guest moves into your account when you sign in.
 - **Fair free-tier sharing:** a quota manager divides a daily Gemini budget between active users. Busy Gemini models are retried, then the next model is tried.
+- **Prompt-injection guardrails:** attempts to read the system prompt or override its rules are refused before the model is called, untrusted text is fenced off in the prompt, replies that echo the instructions are blocked, and answers never load images or unsafe links.
 - **Responsive dark UI:** animated logo intro, aurora background, solid title bar, works from phone to desktop.
 
 ## How it works
@@ -139,6 +140,21 @@ flowchart LR
     L --> M
 ```
 
+## Security and prompt injection
+
+Everything a user controls (the question, the chat history and the text inside uploaded files) is treated as untrusted. The defences are layered so that no single check has to be perfect:
+
+| Layer | Where | What it does |
+|---|---|---|
+| Input guard | `backend/app/guard.py` | Normalizes the question (Unicode, hidden characters, spacing) and refuses prompt-extraction and rule-override attempts with a fixed reply. The model is not called and no quota is used. |
+| Prompt fencing | `backend/app/llm.py` | Excerpts, history and the question sit inside `<document_excerpts>`, `<conversation>` and `<question>` blocks. Look-alike tags in untrusted text are removed so a file cannot close a block early. |
+| History filter | `backend/app/guard.py` | History comes from the browser, so user turns that look like injection attempts are dropped before they reach the model. |
+| System prompt rules | `backend/app/llm.py` | Instructions inside documents are treated as content, never commands; the instructions are confidential; unrelated tasks are declined. |
+| Output guard | `backend/app/guard.py` | A random canary in the system prompt, plus a check for passages copied from it, blocks any reply that leaks the instructions. Text that really comes from the uploaded file is not counted. |
+| Safe rendering | `frontend/src/Answer.tsx` | Answers never load images (a common data-exfiltration trick), raw HTML is skipped, and only `http(s)` links render, opening in a new tab with `noopener noreferrer nofollow`. |
+
+Other protections: Firebase ID tokens are verified on the server, documents are only readable by their owner, Firestore rules are owner-only, and uploads have size, page, row and pixel limits. Pattern-based guards can be bypassed by new phrasings, which is why the prompt rules and the output check sit behind them.
+
 ## Run locally
 
 Backend (Windows PowerShell):
@@ -191,6 +207,8 @@ cd backend
 pip install -r requirements-dev.txt
 python -m pytest -q
 ```
+
+`tests/test_guard.py` covers known injection phrasings, normal questions that must still pass, tag spoofing, history filtering and leak detection.
 
 ## Tech stack
 
