@@ -31,6 +31,24 @@ def lexical_index(doc):
     return index
 
 
+_CODE = re.compile(r"\b(?=[a-z0-9-]*[a-z])(?=[a-z0-9-]*\d)[a-z0-9]+(?:-[a-z0-9]+)*\b", re.I)
+
+
+def identifiers(query):
+    return {m.group(0).lower() for m in _CODE.finditer(query or "")}
+
+
+def boost_exact(doc, order, query):
+    codes = identifiers(query)
+    if not codes:
+        return order
+    patterns = [re.compile(rf"(?<![a-z0-9-]){re.escape(c)}(?![a-z0-9]|-[a-z0-9])", re.I) for c in codes]
+    hits = [i for i in order if any(p.search(doc.chunks[i].text) for p in patterns)]
+    if not hits or len(hits) > max(3, len(order) // 4):
+        return order
+    return hits + [i for i in order if i not in set(hits)]
+
+
 def rank(doc, query_vector, query, hybrid=None):
     dense = doc.vectors @ query_vector
     order = [int(i) for i in np.argsort(-dense, kind="stable")]
@@ -39,6 +57,7 @@ def rank(doc, query_vector, query, hybrid=None):
         lex_order = [int(i) for i in np.argsort(-lex, kind="stable") if lex[i] > 0]
         if lex_order:
             order = rrf([order, lex_order])
+        order = boost_exact(doc, order, query)
     return order, dense
 
 

@@ -148,3 +148,28 @@ def test_evaluation_runs_end_to_end():
     first, last = list(results.values())[0], list(results.values())[-1]
     assert last["MRR"] > first["MRR"] and last["R@8"] >= first["R@8"]
     assert all(r["unreachable"] == 0 for r in results.values())
+
+
+def test_identifiers_need_letters_and_digits():
+    assert retrieval.identifiers("Who handled ORD-1089 and E5 in 2026?") == {"ord-1089", "e5"}
+    assert retrieval.identifiers("What is the 1500 V limit?") == set()
+
+
+def test_exact_identifier_match_goes_first_even_when_rrf_disagrees():
+    texts = [f"order_id: ORD-10{i:02d} | region: North | order details" for i in range(20)]
+    texts[13] = "order_id: ORD-1089 | region: West | sales_rep: Joseph"
+    vectors = [unit(0)] * 20
+    vectors[13] = unit(3)
+    doc = make_doc(texts, vectors)
+    picked, _ = retrieval.select(doc, unit(0), "Who handled order ORD-1089?", "Who handled order ORD-1089?", 3, hybrid=True, mmr=False, rerank=False)
+    assert picked[0] == 13
+
+
+def test_exact_boost_respects_code_boundaries():
+    doc = make_doc(["code E50 here", "code E5 here", "nothing"], [unit(0), unit(1), unit(2)])
+    assert retrieval.boost_exact(doc, [0, 2, 1], "what is E5")[0] == 1
+
+
+def test_common_codes_are_not_boosted():
+    doc = make_doc(["see A1 note"] * 10, [unit(0)] * 10)
+    assert retrieval.boost_exact(doc, list(range(10)), "A1") == list(range(10))
