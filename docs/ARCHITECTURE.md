@@ -45,6 +45,13 @@ A daily budget is split into an 80% shared pool and a 20% reserve. Each active u
 5. `guard.leaks` checks every reply for the canary or copied instruction text, ignoring text that also appears in the retrieved excerpts.
 6. `Answer.tsx` renders no images or raw HTML and only safe `http(s)` links.
 
+## Privacy and hardening
+
+- `ENV` defaults to `production`; the `x-debug-user` header used by tests works only with `ENV=dev`.
+- Security headers come from `vercel.json` for the site and a FastAPI middleware for the API (`nosniff`, `DENY` framing, referrer policy, `no-store`).
+- A notice under the input explains the 2-hour file lifetime and that Google's free Gemini tier may use and review content.
+- Known gap: guest identity uses the first `X-Forwarded-For` entry, which a client can set. Render appends its own entry rather than replacing the header, so the safe entry needs confirming against real Render traffic before changing it. Impact is limited because document IDs are random and the global quota still applies.
+
 ## Frontend notes
 
 - Every chat has its own address (`/c/<id>`), like other chat apps. Refreshing a tab keeps that tab's chat, a new tab starts on the home screen, and back/forward move between chats. Each chat is also cached in the browser under its own key (guest chats included); signed-in chats are saved in Firestore, and a guest chat is moved into the account on sign-in.

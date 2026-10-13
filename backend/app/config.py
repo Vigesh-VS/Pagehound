@@ -12,7 +12,7 @@ def _float(name, default):
     return float(os.getenv(name, default))
 
 
-ENV = os.getenv("ENV", "dev")
+ENV = os.getenv("ENV", "production")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
 GEMINI_MODELS = [m.strip() for m in os.getenv("GEMINI_MODELS", GEMINI_MODEL).split(",") if m.strip()]

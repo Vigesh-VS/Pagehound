@@ -66,3 +66,14 @@ def test_certificate_fetch_failure_means_guest_not_a_crash(monkeypatch, keys):
 
     monkeypatch.setattr(auth, "_fetch_certs", boom)
     assert auth.verify(token(keys["signer"])) is None
+
+
+def test_debug_identity_header_is_ignored_in_production(monkeypatch):
+    from starlette.requests import Request
+
+    from app import auth, config
+
+    monkeypatch.setattr(config, "ENV", "production")
+    scope = {"type": "http", "headers": [(b"x-debug-user", b"someone-else")], "client": ("1.2.3.4", 1)}
+    who = auth.identify(Request(scope))
+    assert who.id == "ip:1.2.3.4" and not who.member

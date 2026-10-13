@@ -173,3 +173,10 @@ def test_follow_up_questions_are_searched_with_context(client, monkeypatch):
     history = [{"role": "user", "text": "When is the invoice payment due?"}, {"role": "assistant", "text": "In 30 days."}]
     client.post("/ask", json={"doc_id": doc_id, "question": "And the late fee?", "history": history}, headers={"x-debug-user": "u1"})
     assert seen[-1] == "When is the invoice payment due? And the late fee?"
+
+
+def test_responses_carry_security_headers(client):
+    response = client.get("/health")
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert response.headers["cache-control"] == "no-store"
+    assert response.headers["x-frame-options"] == "DENY"

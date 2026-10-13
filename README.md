@@ -191,7 +191,18 @@ Everything a user controls (the question, the chat history and the text inside u
 | Output guard | `backend/app/guard.py` | A random canary in the system prompt, plus a check for passages copied from it, blocks any reply that leaks the instructions. Text that really comes from the uploaded file is not counted. |
 | Safe rendering | `frontend/src/Answer.tsx` | Answers never load images (a common data-exfiltration trick), raw HTML is skipped, and only `http(s)` links render, opening in a new tab with `noopener noreferrer nofollow`. |
 
+| Web hardening | `frontend/vercel.json`, `backend/app/main.py` | Security headers on the site and API: `nosniff`, `X-Frame-Options: DENY` (no clickjacking), referrer and permissions policies, HSTS, and `Cache-Control: no-store` so answers are never cached. |
+| Debug paths | `backend/app/config.py` | The test-only identity header works only when `ENV=dev`; the default is production, so a missing setting can never open it. |
+| Dependencies | `npm audit`, `pip-audit` | Both report no known vulnerabilities; patched versions of nested `katex` and `@grpc/grpc-js` are forced with npm `overrides`. |
+
 Other protections: Firebase ID tokens are verified on the server, documents are only readable by their owner, Firestore rules are owner-only, and uploads have size, page, row and pixel limits. Pattern-based guards can be bypassed by new phrasings, which is why the prompt rules and the output check sit behind them.
+
+## Privacy
+
+- Uploaded files are processed in memory and deleted within 2 hours; they are never written to disk or a database.
+- Chat history is stored only for signed-in users, in Firestore, readable by its owner only.
+- Answers are generated with Google's free Gemini API tier. Under Google's terms, content sent to the free tier may be used to improve Google's products and read by human reviewers, so the app tells users not to upload sensitive personal documents. A paid Gemini tier would remove this.
+- Logs record errors and blocked attacks, never questions or file contents.
 
 ## Run locally
 
