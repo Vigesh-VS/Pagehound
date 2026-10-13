@@ -27,6 +27,10 @@
 
 A daily budget is split into an 80% shared pool and a 20% reserve. Each active user's share is the pool divided by active users; users who arrive late use the reserve. Per-minute limits apply per user and globally. Guests also have daily question and upload caps. Counters reset at midnight Pacific, matching Google's quota reset.
 
+## OCR
+
+`pdf_utils.ocr_best` converts a page to greyscale with auto-contrast and reads it with `image_to_data`, which gives a confidence per word. If the page has a table grid (at least three horizontal and three vertical long lines away from the border), the lines are erased and the page is read again in `--psm 4`. A result is good enough when its mean confidence is at least 65 and it has at least 150 confident characters (or 20 at 85+). Otherwise orientation detection rotates the page, and a median-filtered copy is tried; the most confident read wins. On pages that already have text, images covering at least 12% of the page are OCR'd at 1.5× resolution and appended as `[Text in image]`.
+
 ## Retrieval
 
 1. Upload: `chunk_structured` splits each page into sections at detected headings, packs whole sentences up to 900 characters with about 150 characters of overlap, prefixes each chunk with its heading and merges very small neighbours. Table units are packed by whole rows.
@@ -34,7 +38,7 @@ A daily budget is split into an 80% shared pool and a 20% reserve. Each active u
 3. `retrieval.rank` orders chunks by cosine similarity and, with `HYBRID`, by BM25 as well, fusing the two with Reciprocal Rank Fusion (k = 60). The BM25 index is built on the first question and cached on the document. Chunks containing an identifier from the question such as `ORD-1089` or `E5` are then moved to the front (skipped when the code appears in more than a quarter of the chunks).
 4. With `RERANK=1`, the top 20 are re-scored by the `ms-marco-MiniLM-L-6-v2` cross-encoder (baked into the Docker image).
 5. `retrieval.choose` takes the top 8 (or 16 spread across the file for broad questions), using MMR (λ = 0.75) to skip near-duplicates, and sends them in reading order.
-6. `eval/run.py` measures Recall@k and MRR for each step on the golden dataset.
+6. `eval/run.py` measures Recall@k and MRR for each step on the golden dataset; `eval/ocr_check.py` measures OCR fact recall; `eval/answers.py` grades final answers with key-fact checks and an LLM judge. `app/pipeline.py` holds the retrieval steps shared by the API and the evaluations.
 
 ## Prompt-injection defences
 

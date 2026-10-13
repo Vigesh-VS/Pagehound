@@ -58,7 +58,7 @@ _The chat screenshots use a sample document and answer to show the layout._
 ## Features
 
 - **Many file types:** PDF, PNG/JPG/WEBP/BMP/TIFF (OCR), CSV/TSV/XLSX, DOCX, PPTX, TXT, MD.
-- **Scanned pages:** pages with no text layer are detected and read with Tesseract OCR.
+- **Scanned pages and photos:** pages with no text layer are read with Tesseract OCR, with automatic clean-up, rotation and table handling, and text inside photos on normal pages is read too.
 - **Retrieval-augmented answers:** files are split into chunks, embedded, and only the most relevant chunks are sent to Gemini.
 - **Measured retrieval quality:** hybrid search (BM25 + embeddings with Reciprocal Rank Fusion), follow-up query rewriting, structure-aware chunking, MMR diversity and an optional cross-encoder reranker, checked against a labelled evaluation set with Recall@k and MRR.
 - **Live thinking indicator:** a shimmering "Thinking" label with animated dots and a status line that moves from searching to writing, and explains a slow cold start.
@@ -179,6 +179,37 @@ Results (bge-small embeddings, each row adds one technique):
 | + cross-encoder reranker (optional) | 0.85 | 0.98 | 0.90 | 1.00 | 1.00 |
 
 The live configuration finds the right excerpt for 98% of questions (up from 83%) at about 2 ms of ranking per question. The reranker lifts Recall@1 to 0.85 but costs about 1.5 s per question on a laptop CPU, so it stays off on the free server. Full table: `backend/eval/results.md`. Every switch can be turned off in `.env` (`HYBRID`, `MMR`, `REWRITE_FOLLOW_UPS`, `STRUCTURED_CHUNKS`, `RERANK`).
+
+### OCR quality
+
+`backend/eval/ocr_check.py` checks which facts OCR recovers from the 10 scanned and photographed pages of a test PDF (invoice, fax, phone photo, faded copy, handwriting-style notes, sideways scan, scanned table and a photo on a text page).
+
+| | Facts recovered | Time |
+|---|---|---|
+| Before | 24 / 38 (63%) | 21.5 s |
+| After | **36 / 38 (95%)** | 32.6 s |
+
+What changed (`app/pdf_utils.py`):
+
+- **Confidence-based retries.** Tesseract reports a confidence for every word. A page is read once; extra passes run only when the result is weak, and the most confident result wins, so clean scans cost nothing extra.
+- **Image clean-up:** greyscale, auto-contrast and a median filter that removes fax speckle.
+- **Automatic rotation:** Tesseract's orientation detection straightens sideways or upside-down pages.
+- **Table line removal:** grid lines are erased before reading tables, which otherwise lose their data rows.
+- **Text in photos:** large images on pages that already have text (a nameplate photo, a screenshot) are read too.
+
+### Answer quality
+
+`backend/eval/answers.py` grades the final answers, not just the retrieved excerpts, on 25 questions (answerable, follow-up, multi-question and questions the documents cannot answer):
+
+- **Key facts present:** the answer contains the essential facts (no AI involved).
+- **Faithfulness:** an **LLM-as-judge** (a separate Gemini call at temperature 0) scores whether every claim is supported by the excerpts.
+- **Correctness:** the judge compares the answer with a reference answer.
+- **Abstention:** the app should say "not found" for questions the documents cannot answer, and answer the rest.
+
+```powershell
+cd backend
+python eval/answers.py --save   # about 50 Gemini calls, a few minutes on the free tier
+```
 
 ## Security and prompt injection
 

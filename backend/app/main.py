@@ -14,8 +14,8 @@ from .auth import identify
 from .extractors import UnsupportedType, extract, file_extension
 from .pdf_utils import ExtractError
 from .quota import quota
-from .query import contextualize, split_questions
-from .retrieval import gather_many, narrow_docs
+from .pipeline import find_sources
+from .retrieval import narrow_docs
 from .store import store
 
 processing = threading.Semaphore(config.PROCESS_SLOTS)
@@ -169,13 +169,7 @@ def ask(request: Request, body: AskBody):
         )
 
     history = guard.safe_history([t.model_dump() for t in body.history])
-    parts = split_questions(body.question) if config.SPLIT_QUESTIONS else [body.question]
-    searches = []
-    for n, part in enumerate(parts):
-        earlier = history + [{"role": "user", "text": p} for p in parts[:n]]
-        search = contextualize(part, earlier) if config.REWRITE_FOLLOW_UPS else part
-        searches.append((embeddings.embed_query(search), search))
-    sources = gather_many(docs, searches, body.question)
+    sources = find_sources(docs, body.question, history)
 
     try:
         text = llm.answer(body.question, sources, [t.model_dump() for t in body.history])
