@@ -51,36 +51,49 @@ def load_docs():
     return docs
 
 
-def call_with_retry(fn, attempts=5):
+BUSY = ("429", "503", "RESOURCE_EXHAUSTED", "UNAVAILABLE", "high demand", "busy", "quota")
+
+
+def call_with_retry(fn, label, attempts=4):
     for attempt in range(attempts):
         try:
             return fn()
-        except llm.LLMError as exc:
-            if attempt == attempts - 1 or not (exc.rate_limited or "busy" in str(exc)):
-                raise
         except Exception as exc:
-            text = str(exc)
-            if attempt == attempts - 1 or not any(code in text for code in ("429", "503", "RESOURCE_EXHAUSTED", "UNAVAILABLE")):
+            if attempt == attempts - 1 or not any(code in str(exc) for code in BUSY):
                 raise
-        time.sleep(10 * (attempt + 1))
+            wait = 15 * (attempt + 1)
+            print(f"    {label}: Gemini is busy, waiting {wait} s and trying again ({attempt + 1}/{attempts - 1})", flush=True)
+            time.sleep(wait)
 
 
-def judge(question, sources, reference, answer, model):
+def judge(question, sources, reference, answer, models):
     from google.genai import types
 
     excerpts = "\n\n".join(f"[{s.get('label') or s['page']}] {fence(s['text'])}" for s in sources)
     prompt = JUDGE_PROMPT.format(excerpts=excerpts, question=fence(question), reference=reference, answer=fence(answer))
-    settings = types.GenerateContentConfig(temperature=0, response_mime_type="application/json")
-    response = call_with_retry(lambda: llm._get_client().models.generate_content(model=model, contents=prompt, config=settings))
-    raw = (response.text or "").strip()
-    match = re.search(r"\{.*\}", raw, re.S)
-    data = json.loads(match.group(0) if match else raw)
-    return {
-        "faithfulness": int(data.get("faithfulness", 0)),
-        "correctness": int(data.get("correctness", 0)),
-        "abstained": bool(data.get("abstained", False)),
-        "reason": str(data.get("reason", ""))[:200],
-    }
+    last = None
+    for model in models:
+        settings = types.GenerateContentConfig(temperature=0) if model.startswith("gemma") else types.GenerateContentConfig(temperature=0, response_mime_type="application/json")
+        for attempt in range(2):
+            try:
+                response = llm._get_client().models.generate_content(model=model, contents=prompt, config=settings)
+                raw = (response.text or "").strip()
+                match = re.search(r"\{.*\}", raw, re.S)
+                data = json.loads(match.group(0) if match else raw)
+                return {
+                    "faithfulness": int(data.get("faithfulness", 0)),
+                    "correctness": int(data.get("correctness", 0)),
+                    "abstained": bool(data.get("abstained", False)),
+                    "reason": str(data.get("reason", ""))[:200],
+                }
+            except Exception as exc:
+                last = exc
+                if not any(code in str(exc) for code in BUSY) or "429" in str(exc) or attempt == 1:
+                    print(f"    judge {model} unavailable, trying the next model", flush=True)
+                    break
+                print(f"    judge {model} is busy, waiting 8 s", flush=True)
+                time.sleep(8)
+    raise RuntimeError(f"No judge model could grade this answer: {last}")
 
 
 def has_facts(answer, must):
@@ -89,10 +102,11 @@ def has_facts(answer, must):
 
 
 def run(items, docs, model, delay, answer_fn=None, judge_fn=None):
-    answer_fn = answer_fn or (lambda q, s, h: call_with_retry(lambda: llm.answer(q, s, h)))
+    answer_fn = answer_fn or (lambda q, s, h: call_with_retry(lambda: llm.answer(q, s, h), "answer"))
     judge_fn = judge_fn or (lambda q, s, ref, a: judge(q, s, ref, a, model))
     rows = []
-    for item in items:
+    for number, item in enumerate(items, 1):
+        print(f"[{number}/{len(items)}] {item['question'][:70]}", flush=True)
         history = [{"role": "user", "text": h} for h in item["history"]]
         chosen = narrow_docs(docs, item["question"])
         sources = find_sources(chosen, item["question"], history)
@@ -102,7 +116,9 @@ def run(items, docs, model, delay, answer_fn=None, judge_fn=None):
         time.sleep(delay)
         grade = judge_fn(item["question"], sources, item["reference"], answer)
         time.sleep(delay)
-        rows.append({**item, "answer": answer, "seconds": seconds, **grade, "facts": has_facts(answer, item["must"]) if item["must"] else None})
+        row = {**item, "answer": answer, "seconds": seconds, **grade, "facts": has_facts(answer, item["must"]) if item["must"] else None}
+        print(f"    faithful {row['faithfulness']}/5 · correct {row['correctness']}/5 · {'said not found' if row['abstained'] else 'answered'} · {seconds:.1f} s", flush=True)
+        rows.append(row)
     return rows
 
 
@@ -127,7 +143,7 @@ def summarize(rows):
 
 def main():
     parser = argparse.ArgumentParser(description="Grade Pagehound's final answers with key-fact checks and an LLM judge.")
-    parser.add_argument("--judge-model", default=None, help="Gemini model used as the judge (default: first of GEMINI_MODELS)")
+    parser.add_argument("--judge-model", default=None, help="Gemini model used as the judge (default: GEMINI_MODELS in order, falling back when one is busy)")
     parser.add_argument("--delay", type=float, default=4.0, help="seconds to wait between Gemini calls, to stay under free-tier rate limits")
     parser.add_argument("--limit", type=int, default=0, help="only run the first N questions")
     parser.add_argument("--save", action="store_true", help="write eval/answer_results.md")
@@ -135,11 +151,11 @@ def main():
     if not config.GEMINI_API_KEY:
         sys.exit("Set GEMINI_API_KEY in backend/.env first.")
 
-    model = args.judge_model or config.GEMINI_MODELS[0]
+    model = [args.judge_model] if args.judge_model else config.GEMINI_MODELS
     items = [json.loads(line) for line in (ROOT / "answer_set.jsonl").read_text().splitlines() if line.strip()]
     if args.limit:
         items = items[: args.limit]
-    print(f"Grading {len(items)} questions with judge {model}. This makes {2 * len(items)} Gemini calls and takes a few minutes.")
+    print(f"Grading {len(items)} questions, judge models: {', '.join(model)}. About {2 * len(items)} Gemini calls, a few minutes. Progress is shown below.", flush=True)
     rows = run(items, load_docs(), model, args.delay)
     stats = summarize(rows)
 
@@ -151,7 +167,7 @@ def main():
     for r in rows:
         facts = "-" if r["facts"] is None else ("yes" if r["facts"] else "no")
         detail.append(f"| {r['type']} | {r['question']} | {facts} | {r['faithfulness']} | {r['correctness']} | {'yes' if r['abstained'] else 'no'} | {r['reason']} |")
-    report = "\n".join([f"Answer model: {config.GEMINI_MODELS[0]} (with fallbacks) · judge: {model} · {len(rows)} questions", "", *lines, "", *detail])
+    report = "\n".join([f"Answer model: {config.GEMINI_MODELS[0]} (with fallbacks) · judge: {', '.join(model)} · {len(rows)} questions", "", *lines, "", *detail])
     print(report)
     weak = [r for r in rows if (r["type"] == "unanswerable") != r["abstained"] or r["correctness"] <= 3 or r["faithfulness"] <= 3]
     if weak:
