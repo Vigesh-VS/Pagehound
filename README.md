@@ -165,7 +165,18 @@ python eval/run.py --save            # uses the embedding backend from .env
 python eval/run.py --rerank --save   # also measures the reranker
 ```
 
-Results are written to `backend/eval/results.md`. Every switch can be turned off in `.env` (`HYBRID`, `MMR`, `REWRITE_FOLLOW_UPS`, `STRUCTURED_CHUNKS`, `RERANK`).
+Results (bge-small embeddings, each row adds one technique):
+
+| Setup | Recall@1 | Recall@8 | MRR | Exact codes R@3 | Follow-ups R@3 |
+|---|---|---|---|---|---|
+| Baseline: fixed chunks, embeddings only | 0.50 | 0.83 | 0.64 | 0.64 | 0.57 |
+| + structure-aware chunking | 0.63 | 0.85 | 0.72 | 0.73 | 0.43 |
+| + hybrid search with exact-match boost | 0.67 | 0.96 | 0.77 | 1.00 | 0.71 |
+| + follow-up query rewriting | 0.72 | 0.98 | 0.81 | 1.00 | 1.00 |
+| **+ MMR (live site)** | **0.72** | **0.98** | **0.82** | **1.00** | **1.00** |
+| + cross-encoder reranker (optional) | 0.85 | 0.98 | 0.90 | 1.00 | 1.00 |
+
+The live configuration finds the right excerpt for 98% of questions (up from 83%) at about 2 ms of ranking per question. The reranker lifts Recall@1 to 0.85 but costs about 1.5 s per question on a laptop CPU, so it stays off on the free server. Full table: `backend/eval/results.md`. Every switch can be turned off in `.env` (`HYBRID`, `MMR`, `REWRITE_FOLLOW_UPS`, `STRUCTURED_CHUNKS`, `RERANK`).
 
 ## Security and prompt injection
 

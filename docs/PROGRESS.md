@@ -15,14 +15,14 @@
 - Retrieval quality: structure-aware chunking, hybrid BM25 + dense search with RRF, follow-up query rewriting, MMR, optional cross-encoder reranker, golden dataset with Recall@k and MRR evaluation. First real evaluation (bge-small): R@1 0.50 → 0.70, R@8 0.83 → 0.96, MRR 0.64 → 0.79; the one exact-code miss led to exact-identifier boosting. Fixed broad-question detection treating any question containing "about" as a summary request.
 - Prompt-injection guardrails: input guard, fenced prompt, history filter, canary and leak check on replies, safe answer rendering.
 - Resume updated with the live demo and GitHub links.
-- Tests: backend 139 passing.
+- Tests: backend 140 passing.
+- Final evaluation: live setup R@8 0.98, MRR 0.82; reranker R@1 0.85, MRR 0.90 but ~1.5 s/query, kept off on Render.
 
 - Per-chat URLs so refresh, new tabs and back/forward behave like other chat apps; guest chats move into the account on sign-in.
 - Retry on busy Gemini models; a failed question is put back in the input box.
 
 ## Next
 
-- Run `eval/run.py --rerank --save` with the real embedding model and decide whether to enable the reranker on Render.
 
 1. Confirm sign-in and uploads on the live site.
 2. Add live and GitHub links to the resume.
