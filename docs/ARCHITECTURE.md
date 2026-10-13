@@ -30,7 +30,7 @@ A daily budget is split into an 80% shared pool and a 20% reserve. Each active u
 ## Retrieval
 
 1. Upload: `chunk_structured` splits each page into sections at detected headings, packs whole sentences up to 900 characters with about 150 characters of overlap, prefixes each chunk with its heading and merges very small neighbours. Table units are packed by whole rows.
-2. Ask: `query.contextualize` joins a follow-up with the previous user question; the result is embedded.
+2. Ask: `query.split_questions` splits a message with several questions (up to 8 parts); each part is joined with the previous question when it is a follow-up (`query.contextualize`) and embedded separately. `retrieval.gather_many` retrieves for each part and removes duplicates.
 3. `retrieval.rank` orders chunks by cosine similarity and, with `HYBRID`, by BM25 as well, fusing the two with Reciprocal Rank Fusion (k = 60). The BM25 index is built on the first question and cached on the document. Chunks containing an identifier from the question such as `ORD-1089` or `E5` are then moved to the front (skipped when the code appears in more than a quarter of the chunks).
 4. With `RERANK=1`, the top 20 are re-scored by the `ms-marco-MiniLM-L-6-v2` cross-encoder (baked into the Docker image).
 5. `retrieval.choose` takes the top 8 (or 16 spread across the file for broad questions), using MMR (λ = 0.75) to skip near-duplicates, and sends them in reading order.

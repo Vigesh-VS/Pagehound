@@ -61,6 +61,7 @@ _The chat screenshots use a sample document and answer to show the layout._
 - **Scanned pages:** pages with no text layer are detected and read with Tesseract OCR.
 - **Retrieval-augmented answers:** files are split into chunks, embedded, and only the most relevant chunks are sent to Gemini.
 - **Measured retrieval quality:** hybrid search (BM25 + embeddings with Reciprocal Rank Fusion), follow-up query rewriting, structure-aware chunking, MMR diversity and an optional cross-encoder reranker, checked against a labelled evaluation set with Recall@k and MRR.
+- **Live thinking indicator:** a shimmering "Thinking" label with animated dots and a status line that moves from searching to writing, and explains a slow cold start.
 - **Multi-file chats:** questions search every file in the chat, or only the file or file type you mention ("in the pdf", "in the csv"). Guests and signed-in users can add files to the same chat.
 - **Readable answers:** formulas are drawn in their own boxes with KaTeX, column names and key terms show as highlighted chips, and tables render as tables.
 - **Chats that behave like other chat apps:** every chat has its own address (`/c/<id>`), refreshing keeps your place, a new tab starts fresh, back and forward work, and a question interrupted by a refresh is asked again automatically.
@@ -151,6 +152,7 @@ The answer can only be as good as the excerpts sent to Gemini, so retrieval is t
 |---|---|---|
 | **Structure-aware chunking** | Chunks follow headings and sentence boundaries, each chunk keeps its section heading, and table rows are never cut in half. | `app/chunking.py` |
 | **Hybrid search** | Embeddings (dense retrieval) understand meaning but miss exact codes like `ORD-1047` or `E4`; **BM25** keyword search catches them. The two rankings are merged with **Reciprocal Rank Fusion (RRF)**, and chunks containing an exact identifier from the question (letters and digits mixed) are boosted to the top, because RRF alone can bury a single strong keyword match. | `app/lexical.py`, `app/retrieval.py` |
+| **Query decomposition** | A message with several questions ("What is X? Who owns Y? When is Z?") is split into separate searches, each with its own share of excerpts, so no question is crowded out. In a stand-in test, messages of 8 questions went from 84% to 97% of answers retrieved. | `app/query.py`, `app/retrieval.py` |
 | **Query rewriting** | A follow-up such as "And for the secondary one?" is searched together with the previous question, so it finds the right section. | `app/query.py` |
 | **MMR (Maximal Marginal Relevance)** | Stops repeated boilerplate from filling several of the excerpt slots. | `app/retrieval.py` |
 | **Cross-encoder reranking** | A second model reads the question and each candidate together and re-orders the top 20. Measured: MRR 0.82 → 0.90, but about 1.5 s per question on a laptop CPU, so it is off on the free server (`RERANK=1` to enable). | `app/rerank.py` |

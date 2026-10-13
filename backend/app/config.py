@@ -58,6 +58,7 @@ HYBRID = os.getenv("HYBRID", "1") != "0"
 MMR = os.getenv("MMR", "1") != "0"
 MMR_LAMBDA = float(os.getenv("MMR_LAMBDA", "0.75"))
 REWRITE_FOLLOW_UPS = os.getenv("REWRITE_FOLLOW_UPS", "1") != "0"
+SPLIT_QUESTIONS = os.getenv("SPLIT_QUESTIONS", "1") != "0"
 STRUCTURED_CHUNKS = os.getenv("STRUCTURED_CHUNKS", "1") != "0"
 RERANK = os.getenv("RERANK", "0") == "1"
 RERANK_MODEL = os.getenv("RERANK_MODEL", "Xenova/ms-marco-MiniLM-L-6-v2")

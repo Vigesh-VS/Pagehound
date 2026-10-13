@@ -58,6 +58,33 @@ const GoogleIcon = () => (
   </svg>
 )
 
+const STAGES: [number, string][] = [
+  [0, 'Searching your document'],
+  [2500, 'Reading the relevant parts'],
+  [6000, 'Writing the answer'],
+  [15000, 'Still working, long answers take a little longer'],
+  [30000, 'Waking up the server, the first question after a break can take a minute'],
+]
+
+function Thinking() {
+  const [elapsed, setElapsed] = useState(0)
+  useEffect(() => {
+    const start = Date.now()
+    const timer = window.setInterval(() => setElapsed(Date.now() - start), 500)
+    return () => window.clearInterval(timer)
+  }, [])
+  const stage = STAGES.filter(([at]) => elapsed >= at).pop()?.[1] ?? STAGES[0][1]
+  return (
+    <div className="thinking" role="status" aria-live="polite">
+      <div className="thinking-row">
+        <span className="shimmer">Thinking</span>
+        <span className="dots" aria-hidden="true"><i /><i /><i /></span>
+      </div>
+      <p key={stage} className="thinking-stage">{stage}</p>
+    </div>
+  )
+}
+
 function GlowButton({ children, onClick, icon, className = '' }: { children: React.ReactNode; onClick: () => void; icon?: React.ReactNode; className?: string }) {
   return (
     <div className={`glow-group ${className}`}>
@@ -519,7 +546,7 @@ export default function App({ onContribute }: { onContribute: () => void }) {
                 </div>
               </div>
             ))}
-            {thinking && <div className="turn assistant"><div className="msg assistant note"><p>Thinking…</p></div></div>}
+            {thinking && <div className="turn assistant"><Thinking /></div>}
             <div ref={bottom} />
           </div>
         )}

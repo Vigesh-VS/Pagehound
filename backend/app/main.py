@@ -14,8 +14,8 @@ from .auth import identify
 from .extractors import UnsupportedType, extract, file_extension
 from .pdf_utils import ExtractError
 from .quota import quota
-from .query import contextualize
-from .retrieval import gather_sources, narrow_docs
+from .query import contextualize, split_questions
+from .retrieval import gather_many, narrow_docs
 from .store import store
 
 processing = threading.Semaphore(config.PROCESS_SLOTS)
@@ -84,7 +84,7 @@ def health():
         "ok": True,
         "model": config.GEMINI_MODEL,
         "embedding_model": config.GEMINI_EMBED_MODEL if config.EMBED_BACKEND == "gemini" else config.EMBED_MODEL,
-        "retrieval": {"hybrid": config.HYBRID, "mmr": config.MMR, "rewrite_follow_ups": config.REWRITE_FOLLOW_UPS, "structured_chunks": config.STRUCTURED_CHUNKS, "rerank": config.RERANK},
+        "retrieval": {"hybrid": config.HYBRID, "mmr": config.MMR, "rewrite_follow_ups": config.REWRITE_FOLLOW_UPS, "split_questions": config.SPLIT_QUESTIONS, "structured_chunks": config.STRUCTURED_CHUNKS, "rerank": config.RERANK},
     }
 
 
@@ -169,9 +169,13 @@ def ask(request: Request, body: AskBody):
         )
 
     history = guard.safe_history([t.model_dump() for t in body.history])
-    search = contextualize(body.question, history) if config.REWRITE_FOLLOW_UPS else body.question
-    query_vector = embeddings.embed_query(search)
-    sources = gather_sources(docs, query_vector, body.question, search)
+    parts = split_questions(body.question) if config.SPLIT_QUESTIONS else [body.question]
+    searches = []
+    for n, part in enumerate(parts):
+        earlier = history + [{"role": "user", "text": p} for p in parts[:n]]
+        search = contextualize(part, earlier) if config.REWRITE_FOLLOW_UPS else part
+        searches.append((embeddings.embed_query(search), search))
+    sources = gather_many(docs, searches, body.question)
 
     try:
         text = llm.answer(body.question, sources, [t.model_dump() for t in body.history])

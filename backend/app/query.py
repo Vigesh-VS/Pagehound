@@ -24,3 +24,22 @@ def contextualize(question, history):
     if not previous or not is_follow_up(question):
         return question
     return f"{previous.strip()} {question.strip()}"
+
+
+_SPLIT = re.compile(r"(?<=\?)\s+")
+
+
+def split_questions(question, limit=8):
+    parts = []
+    for piece in (p.strip() for p in _SPLIT.split((question or "").strip())):
+        if not piece:
+            continue
+        if parts and (not piece.endswith("?") or len(piece.split()) < 3):
+            parts[-1] = f"{parts[-1]} {piece}"
+        else:
+            parts.append(piece)
+    if len(parts) < 2:
+        return [question]
+    if len(parts) > limit:
+        parts = parts[: limit - 1] + [" ".join(parts[limit - 1:])]
+    return parts

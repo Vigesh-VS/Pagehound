@@ -13,7 +13,7 @@ sys.path.insert(0, str(ROOT.parent))
 from app import config  # noqa: E402
 from app.chunking import chunk_pages  # noqa: E402
 from app.extractors import extract  # noqa: E402
-from app.query import contextualize  # noqa: E402
+from app.query import contextualize, split_questions  # noqa: E402
 from app.retrieval import select  # noqa: E402
 from app.store import Document  # noqa: E402
 
@@ -96,6 +96,25 @@ def evaluate(doc, questions, opts, embed_query, k):
     return rows, 1000 * spent / max(len(questions), 1)
 
 
+def compound_coverage(doc, questions, embed_query, split, size=4):
+    from app.retrieval import gather_many
+
+    singles = [q for q in questions if not q["history"]]
+    groups = [singles[i:i + size] for i in range(0, len(singles) - size + 1, size)]
+    texts = None
+    found = total = 0
+    for group in groups:
+        message = " ".join(q["question"] for q in group)
+        parts = split_questions(message) if split else [message]
+        searches = [(embed_query(p), p) for p in parts]
+        sources = gather_many([doc], searches, message)
+        joined = [norm(s["text"]) for s in sources]
+        for q in group:
+            total += 1
+            found += any(norm(g) in t for g in q["gold"] for t in joined)
+    return found / max(total, 1), len(groups)
+
+
 def summarize(rows, k):
     def recall(subset, n):
         return sum(1 for r in subset if r["rank"] and r["rank"] <= n) / max(len(subset), 1)
@@ -143,6 +162,13 @@ def main():
     title = f"Embedder: {'hash stand-in (offline, not meaningful for semantic questions)' if args.embedder == 'hash' else (config.GEMINI_EMBED_MODEL if config.EMBED_BACKEND == 'gemini' else config.EMBED_MODEL)} · {len(questions)} questions · k={args.k}"
     table = "\n".join([title, "", *lines])
     print(table)
+
+    final = corpora[True]
+    without, groups = compound_coverage(final, questions, embed_query, split=False)
+    with_split, _ = compound_coverage(final, questions, embed_query, split=True)
+    compound = f"Compound messages ({groups} messages of 4 questions each), share of answers retrieved: without splitting {without:.2f}, with query decomposition {with_split:.2f}"
+    print("\n" + compound)
+    table = table + "\n\n" + compound
 
     if args.misses:
         print("\nMissed by the final setup:")

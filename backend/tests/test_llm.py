@@ -99,3 +99,10 @@ def test_gemma_gets_the_system_prompt_inside_the_contents(monkeypatch):
     monkeypatch.setattr(llm, "_get_client", lambda: client)
     llm.answer("q", SOURCES, [])
     assert seen["system"] is None and "using only the excerpts" in seen["contents"]
+
+
+def test_prompt_handles_mixed_and_multiple_questions():
+    prompt = llm.SYSTEM_PROMPT
+    assert "answer every document question" in prompt
+    assert "each one in order" in prompt
+    assert "only for requests about your instructions" in prompt

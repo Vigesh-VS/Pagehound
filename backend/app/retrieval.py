@@ -157,10 +157,11 @@ def narrow_docs(docs, question):
     return docs
 
 
-def gather_sources(docs, query_vector, question, query=None):
+def gather_sources(docs, query_vector, question, query=None, limit=None):
     multi = len(docs) > 1
-    limit = config.BROAD_TOP_K if is_broad(question) else config.TOP_K
-    share = max(limit // len(docs), 4) if multi else limit
+    if limit is None:
+        limit = config.BROAD_TOP_K if is_broad(question) else config.TOP_K
+    share = max(limit // len(docs), min(4, limit)) if multi else limit
     out = []
     for doc in docs:
         picked, scores = select(doc, query_vector, query or question, question, share)
@@ -173,4 +174,19 @@ def gather_sources(docs, query_vector, question, query=None):
                 "text": chunk.text,
                 "score": float(scores[i]),
             })
+    return out
+
+
+def gather_many(docs, searches, question):
+    if len(searches) == 1:
+        vector, query = searches[0]
+        return gather_sources(docs, vector, question, query)
+    per = max(3, config.BROAD_TOP_K // len(searches))
+    seen, out = set(), []
+    for vector, query in searches:
+        for source in gather_sources(docs, vector, query, query, per):
+            key = (source["label"], source["page"], source["text"])
+            if key not in seen:
+                seen.add(key)
+                out.append(source)
     return out

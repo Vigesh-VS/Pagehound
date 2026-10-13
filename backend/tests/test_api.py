@@ -180,3 +180,12 @@ def test_responses_carry_security_headers(client):
     assert response.headers["x-content-type-options"] == "nosniff"
     assert response.headers["cache-control"] == "no-store"
     assert response.headers["x-frame-options"] == "DENY"
+
+
+def test_compound_questions_are_searched_separately_with_context(client, monkeypatch):
+    seen = []
+    original = embeddings.embed_query
+    monkeypatch.setattr(embeddings, "embed_query", lambda text: seen.append(text) or original(text))
+    doc_id = upload(client, text_pdf()).json()["doc_id"]
+    client.post("/ask", json={"doc_id": doc_id, "question": "When is the invoice payment due? And the late fee?"}, headers={"x-debug-user": "u1"})
+    assert seen == ["When is the invoice payment due?", "When is the invoice payment due? And the late fee?"]

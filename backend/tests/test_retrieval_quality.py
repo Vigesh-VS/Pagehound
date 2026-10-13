@@ -181,3 +181,22 @@ def test_exact_match_stays_first_after_reranking(monkeypatch):
     monkeypatch.setattr(retrieval, "rerank_texts", lambda q, t: [float(len(t) - n) for n in range(len(t))])
     picked, _ = retrieval.select(doc, unit(0), "status of ORD-1007", "status of ORD-1007", 3, hybrid=True, mmr=False, rerank=True)
     assert picked[0] == 7
+
+
+def test_split_questions_separates_and_keeps_instructions_attached():
+    from app.query import split_questions
+
+    assert split_questions("What is the budget?") == ["What is the budget?"]
+    assert split_questions("Who is the CEO? What is the warranty? Answer one by one") == ["Who is the CEO?", "What is the warranty? Answer one by one"]
+    assert split_questions("Is it 5? or 6?") == ["Is it 5? or 6?"]
+    assert len(split_questions(" ".join(f"What is item {i}?" for i in range(12)))) == 8
+
+
+def test_gather_many_retrieves_for_each_question_without_duplicates():
+    texts = ["refund policy is 30 days", "shipping takes two days", "warranty lasts two years", "office opens at nine"] * 1
+    doc = make_doc(texts, [unit(0), unit(1), unit(2), unit(3)])
+    searches = [(unit(0), "refund policy"), (unit(2), "warranty"), (unit(0), "refund again")]
+    sources = retrieval.gather_many([doc], searches, "q")
+    found = [s["text"] for s in sources]
+    assert "refund policy is 30 days" in found and "warranty lasts two years" in found
+    assert len(found) == len(set(found))
