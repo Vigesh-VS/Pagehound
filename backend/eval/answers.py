@@ -129,7 +129,7 @@ def summarize(rows):
 
     def mean(values):
         values = list(values)
-        return sum(values) / len(values) if values else 0.0
+        return sum(values) / len(values) if values else None
 
     return {
         "Key facts present": mean(1.0 if r["facts"] else 0.0 for r in answerable if r["facts"] is not None),
@@ -161,7 +161,7 @@ def main():
 
     lines = ["| Metric | Score |", "|---|---|"]
     for key, value in stats.items():
-        shown = f"{value:.2f}" if "1-5" in key or "Seconds" in key else f"{value:.0%}"
+        shown = "n/a" if value is None else f"{value:.2f}" if "1-5" in key or "Seconds" in key else f"{value:.0%}"
         lines.append(f"| {key} | {shown} |")
     detail = ["| Type | Question | Facts | Faithful | Correct | Abstained | Judge's reason |", "|---|---|---|---|---|---|---|"]
     for r in rows:

@@ -97,3 +97,8 @@ def test_judge_falls_back_when_a_model_is_busy(monkeypatch):
     monkeypatch.setattr(answers.llm, "_get_client", lambda: Client())
     grade = answers.judge("q", [], "ref", "ans", ["busy", "spare"])
     assert grade["correctness"] == 4 and calls == ["busy", "spare"]
+
+
+def test_metrics_without_matching_questions_are_not_applicable():
+    rows = [{"type": "answerable", "abstained": False, "faithfulness": 5, "correctness": 5, "seconds": 1.0, "facts": True}]
+    assert answers.summarize(rows)["Said 'not found' when it should"] is None
