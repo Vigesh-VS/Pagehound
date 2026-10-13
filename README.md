@@ -153,7 +153,7 @@ The answer can only be as good as the excerpts sent to Gemini, so retrieval is t
 | **Hybrid search** | Embeddings (dense retrieval) understand meaning but miss exact codes like `ORD-1047` or `E4`; **BM25** keyword search catches them. The two rankings are merged with **Reciprocal Rank Fusion (RRF)**, and chunks containing an exact identifier from the question (letters and digits mixed) are boosted to the top, because RRF alone can bury a single strong keyword match. | `app/lexical.py`, `app/retrieval.py` |
 | **Query rewriting** | A follow-up such as "And for the secondary one?" is searched together with the previous question, so it finds the right section. | `app/query.py` |
 | **MMR (Maximal Marginal Relevance)** | Stops repeated boilerplate from filling several of the excerpt slots. | `app/retrieval.py` |
-| **Cross-encoder reranking** | A second model reads the question and each candidate together and re-orders the top 20. Off by default (`RERANK=1` to enable) until it proves worth its latency on the free server. | `app/rerank.py` |
+| **Cross-encoder reranking** | A second model reads the question and each candidate together and re-orders the top 20. Measured: MRR 0.82 → 0.90, but about 1.5 s per question on a laptop CPU, so it is off on the free server (`RERANK=1` to enable). | `app/rerank.py` |
 
 ### Evaluation
 
