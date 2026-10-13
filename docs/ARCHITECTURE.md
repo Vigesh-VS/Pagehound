@@ -49,7 +49,7 @@ A daily budget is split into an 80% shared pool and a 20% reserve. Each active u
 
 - `ENV` defaults to `production`; the `x-debug-user` header used by tests works only with `ENV=dev`.
 - Security headers come from `vercel.json` for the site and a FastAPI middleware for the API (`nosniff`, `DENY` framing, referrer policy, `no-store`).
-- A notice under the input explains the 2-hour file lifetime and that Google's free Gemini tier may use and review content.
+- A one-line notice under the input ("Files auto-delete in 2 hours · Don't upload sensitive documents") with the Gemini free-tier reason in its tooltip; full details in the README Privacy section.
 - Known gap: guest identity uses the first `X-Forwarded-For` entry, which a client can set. Render appends its own entry rather than replacing the header, so the safe entry needs confirming against real Render traffic before changing it. Impact is limited because document IDs are random and the global quota still applies.
 
 ## Frontend notes

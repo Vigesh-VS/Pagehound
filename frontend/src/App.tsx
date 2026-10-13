@@ -584,8 +584,8 @@ export default function App({ onContribute }: { onContribute: () => void }) {
               </button>
             </div>
           </div>
-          <p className="notice">
-            Files are deleted within 2 hours. Answers use Google's free Gemini tier, where Google may review content, so avoid uploading sensitive personal documents.
+          <p className="notice" title="Answers use Google's free Gemini tier, where Google may review content.">
+            Files auto-delete in 2 hours · Don't upload sensitive documents
           </p>
         </div>
         <input

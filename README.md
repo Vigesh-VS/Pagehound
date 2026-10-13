@@ -203,7 +203,7 @@ Other protections: Firebase ID tokens are verified on the server, documents are 
 
 - Uploaded files are processed in memory and deleted within 2 hours; they are never written to disk or a database.
 - Chat history is stored only for signed-in users, in Firestore, readable by its owner only.
-- Answers are generated with Google's free Gemini API tier. Under Google's terms, content sent to the free tier may be used to improve Google's products and read by human reviewers, so the app tells users not to upload sensitive personal documents. A paid Gemini tier would remove this.
+- Answers are generated with Google's free Gemini API tier. Under Google's terms, content sent to the free tier may be used to improve Google's products and read by human reviewers, so a one-line notice under the input tells users not to upload sensitive documents. A paid Gemini tier would remove this.
 - Logs record errors and blocked attacks, never questions or file contents.
 
 ## Run locally
